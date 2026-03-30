@@ -9,6 +9,7 @@ const ukeys = ref<any[]>([])
 const loading = ref(true)
 const creating = ref(false)
 const deletingId = ref('')
+const showInstallModal = ref(false)
 
 // iOS 快捷指令安装链接
 const SHORTCUT_LINK = 'https://www.icloud.com/shortcuts/65d3aec377784390a392b14f042b8ae9'
@@ -75,16 +76,21 @@ function copyToClipboard(text: string) {
 
 // 复制具体 JSON 配置并安装快捷指令
 function copyAndInstall(host: string, ukey: string) {
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
+  if (!isIOS) {
+    alert('此功能只适用于 iPhone 或 iPad 的 Safari 浏览器。\n如果当前是在电脑端，请使用上方「复制配置」并在手机上保存。')
+    return
+  }
   const jsonStr = JSON.stringify({ host, ukey }, null, 2)
   copyToClipboard(jsonStr)
   
-  // 使用系统原生确认框，确保能阻塞住浏览器的跳转行为，并给出明确提示
-  const proceed = window.confirm('复制成功，请将复制的内容粘贴到对应的输入框中并添加快捷指令')
-  
-  if (proceed) {
-    // 跳转到安装短链
-    window.location.href = SHORTCUT_LINK
-  }
+  // 弹出自定义弹窗
+  showInstallModal.value = true
+}
+
+function goToInstall() {
+  showInstallModal.value = false
+  window.location.href = SHORTCUT_LINK
 }
 
 onMounted(() => {
@@ -141,6 +147,19 @@ onMounted(() => {
               复制配置并添加快捷指令
             </button>
           </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 自定义弹窗 -->
+    <div class="modal-overlay" v-if="showInstallModal">
+      <div class="modal-content">
+        <div class="modal-body">
+          复制成功，请将复制的内容粘贴到对应的输入框中并添加快捷指令
+        </div>
+        <div class="modal-actions">
+          <button class="btn-cancel" @click="showInstallModal = false">取消</button>
+          <button class="btn-confirm" @click="goToInstall">立即前往</button>
         </div>
       </div>
     </div>
@@ -233,6 +252,61 @@ onMounted(() => {
   color: var(--primary);
   padding: 8px;
   cursor: pointer;
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  animation: fadeIn 0.2s ease-out;
+}
+.modal-content {
+  background: white;
+  width: 85%;
+  max-width: 320px;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+  display: flex;
+  flex-direction: column;
+}
+.modal-body {
+  padding: 30px 20px;
+  font-size: 1rem;
+  color: var(--text-primary);
+  text-align: center;
+  line-height: 1.5;
+}
+.modal-actions {
+  display: flex;
+  border-top: 1px solid rgba(0,0,0,0.05);
+}
+.modal-actions button {
+  flex: 1;
+  padding: 16px 0;
+  border: none;
+  background: transparent;
+  font-size: 1.05rem;
+  cursor: pointer;
+}
+.btn-cancel {
+  border-right: 1px solid rgba(0,0,0,0.05) !important;
+  color: var(--text-secondary);
+}
+.btn-confirm {
+  color: var(--primary);
+  font-weight: 600;
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 .btn-primary {
