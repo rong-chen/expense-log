@@ -80,22 +80,24 @@ function copyConfig(host: string, ukey: string) {
 }
 
 // iOS 一键直达打开快捷指令
-function oneClickConfigure(host: string, ukey: string) {
+function copyAndOpenShortcuts(host: string, ukey: string) {
   const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
   
   if (!isIOS) {
-    alert('⚠️ 此「一键配置」只适用于 iPhone 或 iPad 的 Safari 浏览器。\n如果当前是在电脑端，请使用上方「复制配置到剪贴板」并在手机上新建记事本保存。')
+    alert('⚠️ 此功能只适用于 iPhone 或 iPad 的 Safari 浏览器。\n如果当前是在电脑端，请使用上方「复制配置」并在手机上保存。')
     return
   }
 
-  const name = window.prompt("即将把配置一键传输给快捷指令。\n请输入您在设备上给该快捷指令命名的确切名字（默认：易账）：", "易账")
-  if (!name) return
-
-  const jsonStr = JSON.stringify({ host, ukey })
-  const url = `shortcuts://run-shortcut?name=${encodeURIComponent(name.trim())}&input=text&text=${encodeURIComponent(jsonStr)}`
+  // 1. 复制文本到剪贴板
+  const jsonStr = JSON.stringify({ host, ukey }, null, 2)
+  copyToClipboard(jsonStr)
   
-  // 页面跳转触发 Scheme
-  window.location.href = url
+  toast.success('配置已自动复制！\n即将跳转，请找【文本】框粘贴。', { duration: 4000 })
+
+  // 2. 直接唤醒 Shortcuts App（不带参数传递，只打开主界面供用户自己点）
+  setTimeout(() => {
+    window.location.href = `shortcuts://`
+  }, 800)
 }
 
 onMounted(() => {
@@ -148,9 +150,9 @@ onMounted(() => {
 
           <div style="display: flex; gap: 12px; margin-top: 8px;">
             <button class="btn-primary" @click="copyConfig(k.host, k.full_token)" style="flex: 1;">复制配置</button>
-            <button class="btn-primary btn-shortcut" @click="oneClickConfigure(k.host, k.full_token)" style="flex: 1.5; display: flex; align-items: center; justify-content: center; gap: 6px;">
+            <button class="btn-primary btn-shortcut" @click="copyAndOpenShortcuts(k.host, k.full_token)" style="flex: 1.5; display: flex; align-items: center; justify-content: center; gap: 4px;">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
-              iOS 一键配置
+              复制并打开捷径
             </button>
           </div>
         </div>
