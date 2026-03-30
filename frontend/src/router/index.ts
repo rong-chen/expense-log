@@ -23,6 +23,12 @@ const router = createRouter({
       meta: { requiresAuth: true, hideBottomNav: true }
     },
     {
+      path: '/recurring',
+      name: 'RecurringManager',
+      component: () => import('../pages/profile/RecurringManager.vue'),
+      meta: { requiresAuth: true, hideBottomNav: true }
+    },
+    {
       path: '/:pathMatch(.*)*',
       name: 'register',
       component: () => import('@/pages/auth/Register.vue'),

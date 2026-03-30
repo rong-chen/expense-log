@@ -45,12 +45,18 @@ func Start(db *gorm.DB, rdb *redis.Client, cfg *model.Config) {
 	// 注册账单路由（注入 LLM Provider）
 	item.NewBillRouter(v1, db, rdb, cfg.JWT, llmProvider)
 
+	// 注册周期账单路由
+	recurringServ := item.NewRecurringBillRouter(v1, db, cfg.JWT)
+
 	// 启动邮件定时拉取后台任务（goroutine，非阻塞）
 	interval, err := time.ParseDuration(cfg.Email.PollInterval)
 	if err != nil {
 		interval = 5 * time.Minute
 	}
 	emailServ.StartScheduler(interval)
+
+	// 启动周期账单定时调度器（每天凌晨 00:05 自动扣款）
+	recurringServ.StartScheduler()
 
 	// 启动 HTTP 服务（阻塞）
 	port := strconv.Itoa(cfg.Server.Port)

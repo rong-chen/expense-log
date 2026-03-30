@@ -14,9 +14,10 @@ import (
 type BillSource string
 
 const (
-	BillSourceEmail  BillSource = "email"  // 邮件自动拉取
-	BillSourceUpload BillSource = "upload" // 手动上传文件
-	BillSourceManual BillSource = "manual" // 手动输入
+	BillSourceEmail     BillSource = "email"     // 邮件自动拉取
+	BillSourceUpload    BillSource = "upload"    // 手动上传文件
+	BillSourceManual    BillSource = "manual"    // 手动输入
+	BillSourceRecurring BillSource = "recurring" // 周期账单自动生成
 )
 
 // Bill 账单记录
