@@ -11,7 +11,7 @@ const creating = ref(false)
 const deletingId = ref('')
 
 // iOS 快捷指令安装链接
-const SHORTCUT_LINK = 'https://www.icloud.com/shortcuts/4b81141048f94fe18f414354722de1f1'
+const SHORTCUT_LINK = 'https://www.icloud.com/shortcuts/65d3aec377784390a392b14f042b8ae9'
 
 
 async function fetchUkeys() {
