@@ -37,7 +37,7 @@ func Start(db *gorm.DB, rdb *redis.Client, cfg *model.Config) {
 	item.NewUserRouter(v1, db, cfg.JWT)
 
 	// 注册 Ukey 自动鉴权路由
-	item.NewUkeyRouter(v1, db, rdb, cfg.JWT, cfg.Server.Domain)
+	item.NewUkeyRouter(v1, db, rdb, cfg.JWT, cfg.Server.GetDomain())
 
 	// 注册邮箱路由，并返回 emailService
 	emailServ := item.NewEmailRouter(v1, db, cfg)

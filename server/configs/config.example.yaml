@@ -1,7 +1,8 @@
 # 数据库与缓存全局配置文件
 server:
   port: 8808
-  domain: "http://192.168.10.196:8808"
+  domain: "https://expenselog.yuanzhijia.top"    # 线上域名
+  dev_domain: "http://localhost:8808"             # 本地开发域名
 database:
   postgres:
     # 基础连接信息

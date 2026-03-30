@@ -10,8 +10,18 @@ type Config struct {
 	LLM      LLMConfig      `mapstructure:"llm"`
 }
 type Server struct {
-	Port   int    `mapstructure:"port"`
-	Domain string `mapstructure:"domain"`
+	Port      int    `mapstructure:"port"`
+	Domain    string `mapstructure:"domain"`
+	DevDomain string `mapstructure:"dev_domain"`
+}
+
+// GetDomain 返回当前环境使用的域名
+// 如果配置了 dev_domain 则使用（本地开发），否则使用 domain（线上）
+func (s Server) GetDomain() string {
+	if s.DevDomain != "" {
+		return s.DevDomain
+	}
+	return s.Domain
 }
 
 type JWTConfig struct {
