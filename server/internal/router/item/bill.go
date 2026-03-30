@@ -26,7 +26,7 @@ func NewBillRouter(r *gin.RouterGroup, db *gorm.DB, rdb *redis.Client, jwtCfg mo
 
 	// 正常的 Web 端接口需要走 JWT 拦截
 	webGroup := billGroup.Group("")
-	webGroup.Use(middleware.JWTAuth([]byte(jwtCfg.Secret)))
+	webGroup.Use(middleware.JWTAuth([]byte(jwtCfg.Secret), rdb))
 
 	webGroup.GET("/stats/trend", billCtrl.GetTrendStats)
 	webGroup.GET("/stats/category", billCtrl.GetCategoryStats)

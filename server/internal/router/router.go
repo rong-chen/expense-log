@@ -1,6 +1,7 @@
 package router
 
 import (
+	"expense-log/internal/middleware"
 	"expense-log/internal/model"
 	"expense-log/internal/router/item"
 	"expense-log/pkg/llm"
@@ -17,10 +18,34 @@ func Start(db *gorm.DB, rdb *redis.Client, cfg *model.Config) {
 	r := gin.New()
 	r.Use(gin.Recovery())
 	r.Use(gin.Logger())
+
+	// 安全响应头 (全局)
+	r.Use(middleware.SecurityHeaders())
+
+	// CORS 跨域限制: 仅允许配置的域名访问
+	allowedOrigins := []string{}
+	if cfg.Server.Domain != "" {
+		allowedOrigins = append(allowedOrigins, "https://"+cfg.Server.Domain)
+	}
+	if cfg.Server.DevDomain != "" {
+		allowedOrigins = append(allowedOrigins, cfg.Server.DevDomain)
+	}
+	r.Use(middleware.CORS(allowedOrigins))
+
 	// 默认路径/api
 	api := r.Group("/api")
+
+	// 请求体大小限制: 全局 10MB
+	api.Use(middleware.BodyLimit(10 << 20))
+
 	// 初始版本号
 	v1 := api.Group("/v1")
+
+	// 全局限流：每个 IP/用户 每分钟最多 100 次请求
+	v1.Use(middleware.RateLimit(rdb, []byte(cfg.JWT.Secret), middleware.RateLimitConfig{
+		MaxRequests: 100,
+		Window:      1 * time.Minute,
+	}))
 
 	// 初始化 LLM Provider
 	llmProvider, err := llm.New(llm.Config{
@@ -34,19 +59,19 @@ func Start(db *gorm.DB, rdb *redis.Client, cfg *model.Config) {
 	}
 
 	// 注册用户路由
-	item.NewUserRouter(v1, db, cfg.JWT)
+	item.NewUserRouter(v1, db, rdb, cfg.JWT)
 
 	// 注册 Ukey 自动鉴权路由
 	item.NewUkeyRouter(v1, db, rdb, cfg.JWT, cfg.Server.GetDomain())
 
 	// 注册邮箱路由，并返回 emailService
-	emailServ := item.NewEmailRouter(v1, db, cfg)
+	emailServ := item.NewEmailRouter(v1, db, rdb, cfg)
 
 	// 注册账单路由（注入 LLM Provider）
 	item.NewBillRouter(v1, db, rdb, cfg.JWT, llmProvider)
 
 	// 注册周期账单路由
-	recurringServ := item.NewRecurringBillRouter(v1, db, cfg.JWT)
+	recurringServ := item.NewRecurringBillRouter(v1, db, rdb, cfg.JWT)
 
 	// 启动邮件定时拉取后台任务（goroutine，非阻塞）
 	interval, err := time.ParseDuration(cfg.Email.PollInterval)

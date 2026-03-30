@@ -16,27 +16,28 @@ const (
 // MyClaims 自定义 JWT Claims
 type MyClaims struct {
 	UserID    uuid.UUID `json:"user_id"`
+	SessionID string    `json:"session_id"` // 核心：用于单点登录
 	TokenType string    `json:"token_type"` // "access" 或 "refresh"
 	jwt.RegisteredClaims
 }
 
 // CreateAccessToken 创建短期 Access Token
-func CreateAccessToken(userID uuid.UUID, secret []byte, expire time.Duration) (string, error) {
-	return createToken(userID, secret, expire, TokenTypeAccess)
+func CreateAccessToken(userID uuid.UUID, sessionID string, secret []byte, expire time.Duration) (string, error) {
+	return createToken(userID, sessionID, secret, expire, TokenTypeAccess)
 }
 
 // CreateRefreshToken 创建长期 Refresh Token
-func CreateRefreshToken(userID uuid.UUID, secret []byte, expire time.Duration) (string, error) {
-	return createToken(userID, secret, expire, TokenTypeRefresh)
+func CreateRefreshToken(userID uuid.UUID, sessionID string, secret []byte, expire time.Duration) (string, error) {
+	return createToken(userID, sessionID, secret, expire, TokenTypeRefresh)
 }
 
 // CreateTokenPair 一次生成双 Token
-func CreateTokenPair(userID uuid.UUID, secret []byte, accessExpire, refreshExpire time.Duration) (accessToken, refreshToken string, err error) {
-	accessToken, err = CreateAccessToken(userID, secret, accessExpire)
+func CreateTokenPair(userID uuid.UUID, sessionID string, secret []byte, accessExpire, refreshExpire time.Duration) (accessToken, refreshToken string, err error) {
+	accessToken, err = CreateAccessToken(userID, sessionID, secret, accessExpire)
 	if err != nil {
 		return "", "", err
 	}
-	refreshToken, err = CreateRefreshToken(userID, secret, refreshExpire)
+	refreshToken, err = CreateRefreshToken(userID, sessionID, secret, refreshExpire)
 	if err != nil {
 		return "", "", err
 	}
@@ -62,9 +63,10 @@ func ParseToken(tokenStr string, secret []byte) (*MyClaims, error) {
 }
 
 // createToken 内部方法，创建指定类型的 Token
-func createToken(userID uuid.UUID, secret []byte, expire time.Duration, tokenType string) (string, error) {
+func createToken(userID uuid.UUID, sessionID string, secret []byte, expire time.Duration, tokenType string) (string, error) {
 	claims := MyClaims{
 		UserID:    userID,
+		SessionID: sessionID,
 		TokenType: tokenType,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(expire)),

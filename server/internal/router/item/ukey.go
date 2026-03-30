@@ -21,7 +21,7 @@ func NewUkeyRouter(r *gin.RouterGroup, db *gorm.DB, rdb *redis.Client, jwtCfg mo
 	
 	// 需要 JWT 登录才能管理 Ukey
 	authGroup := userGroup.Group("")
-	authGroup.Use(middleware.JWTAuth([]byte(jwtCfg.Secret)))
+	authGroup.Use(middleware.JWTAuth([]byte(jwtCfg.Secret), rdb))
 	
 	authGroup.POST("/ukey", ukeyCtrl.CreateUkey)
 	authGroup.GET("/ukey", ukeyCtrl.ListUkeys)

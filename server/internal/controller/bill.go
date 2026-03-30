@@ -11,6 +11,7 @@ import (
 	"expense-log/pkg/response"
 	"expense-log/pkg/utils"
 	"fmt"
+	"html"
 	"io"
 	"net/http"
 	"time"
@@ -434,9 +435,9 @@ func (ctrl *billController) UpdateBill(c *gin.Context) {
 
 	dto := service.UpdateBillDTO{
 		Amount:    req.Amount,
-		Merchant:  req.Merchant,
-		Category:  req.Category,
-		Remark:    req.Remark,
+		Merchant:  html.EscapeString(req.Merchant),
+		Category:  html.EscapeString(req.Category),
+		Remark:    html.EscapeString(req.Remark),
 		CreatedAt: t,
 	}
 
@@ -499,9 +500,9 @@ func (ctrl *billController) CreateBill(c *gin.Context) {
 	bill := &model.Bill{
 		UserID:          userID,
 		Amount:          req.Amount,
-		Merchant:        req.Merchant,
-		Category:        req.Category,
-		Remark:          req.Remark,
+		Merchant:        html.EscapeString(req.Merchant),
+		Category:        html.EscapeString(req.Category),
+		Remark:          html.EscapeString(req.Remark),
 		Source:          model.BillSourceManual,
 		TransactionDate: t,
 	}

@@ -4,6 +4,7 @@ import (
 	"expense-log/internal/model"
 	"expense-log/internal/service"
 	"expense-log/pkg/response"
+	"html"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -58,9 +59,9 @@ func (ctrl *recurringBillController) Create(c *gin.Context) {
 
 	rb := model.RecurringBill{
 		Amount:     req.Amount,
-		Merchant:   req.Merchant,
-		Category:   req.Category,
-		Remark:     req.Remark,
+		Merchant:   html.EscapeString(req.Merchant),
+		Category:   html.EscapeString(req.Category),
+		Remark:     html.EscapeString(req.Remark),
 		DayOfMonth: req.DayOfMonth,
 	}
 	if err := ctrl.serv.Create(userID, &rb); err != nil {
@@ -116,9 +117,9 @@ func (ctrl *recurringBillController) Update(c *gin.Context) {
 
 	rb := model.RecurringBill{
 		Amount:     req.Amount,
-		Merchant:   req.Merchant,
-		Category:   req.Category,
-		Remark:     req.Remark,
+		Merchant:   html.EscapeString(req.Merchant),
+		Category:   html.EscapeString(req.Category),
+		Remark:     html.EscapeString(req.Remark),
 		DayOfMonth: req.DayOfMonth,
 	}
 	if err := ctrl.serv.Update(userID, id, &rb); err != nil {

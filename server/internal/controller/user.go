@@ -121,9 +121,19 @@ func (u *userController) setRefreshTokenCookie(c *gin.Context, token string) {
 	)
 }
 
-// Logout 退出登录
+// Logout 退出登录：清除 Cookie + 废止 Redis Session
 func (u *userController) Logout(c *gin.Context) {
+	// 清除客户端 Cookie
 	c.SetCookie("refresh_token", "", -1, "/api/v1/user/refresh", "", false, true)
+
+	// 废止服务端 Session（使旧 Token 立即失效）
+	userIDValue, exists := c.Get("userID")
+	if exists {
+		if userID, ok := userIDValue.(uuid.UUID); ok {
+			_ = u.serv.Logout(userID)
+		}
+	}
+
 	response.Success(c, nil)
 }
 

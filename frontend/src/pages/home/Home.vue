@@ -2,7 +2,7 @@
 import { useAuthStore } from '@/stores/auth'
 import { useRouter } from 'vue-router'
 import {
-  FileText, Camera, Bell, PenLine, Receipt, ArrowRight
+  FileText, Camera, Bell, PenLine, Receipt, ArrowRight, CalendarClock
 } from 'lucide-vue-next'
 import { use } from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
@@ -197,6 +197,12 @@ onMounted(() => {
         </div>
         <span class="action-label">全部明细</span>
       </div>
+      <div class="action-card card" @click="router.push('/recurring')">
+        <div class="action-icon" style="background: rgba(231,76,60,0.12); color: #e74c3c;">
+          <CalendarClock :size="22" />
+        </div>
+        <span class="action-label">周期账单</span>
+      </div>
     </div>
 
     <!-- 切换 Tab -->
@@ -315,8 +321,8 @@ onMounted(() => {
 /* 快捷操作栏 */
 .quick-actions {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
   margin-bottom: 20px;
 }
 .action-card {
