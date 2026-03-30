@@ -4,7 +4,6 @@ import { RouterView, useRoute, useRouter } from 'vue-router'
 import BottomNav from '@/components/layout/BottomNav.vue'
 import ReloadPrompt from '@/components/ReloadPrompt.vue'
 import { Toaster } from 'vue-sonner'
-import { X, Smartphone, Monitor } from 'lucide-vue-next'
 
 const route = useRoute()
 const router = useRouter()
@@ -14,34 +13,7 @@ router.isReady().then(() => {
   isRouterReady.value = true
 })
 
-const showPwaPrompt = ref(false)
-const pwaPromptMode = ref<'mobile' | 'pc' | null>(null)
 
-onMounted(() => {
-  if (sessionStorage.getItem('pwa_prompt_dismissed')) return
-
-  const isStandalone = window.matchMedia('(display-mode: standalone)').matches || 
-                       (navigator as any).standalone || 
-                       document.referrer.includes('android-app://')
-
-  if (isStandalone) return // 是原生 PWA，无需提示
-
-  const ua = navigator.userAgent
-  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua)
-  
-  if (isMobile) {
-    pwaPromptMode.value = 'mobile'
-    showPwaPrompt.value = true
-  } else {
-    pwaPromptMode.value = 'pc'
-    showPwaPrompt.value = true
-  }
-})
-
-function dismissPrompt() {
-  showPwaPrompt.value = false
-  sessionStorage.setItem('pwa_prompt_dismissed', '1')
-}
 </script>
 
 <template>

@@ -1,12 +1,10 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
-import { useRouter } from 'vue-router'
 import { Key, Plus, Trash2 } from 'lucide-vue-next'
 import TopNavBar from '@/components/layout/TopNavBar.vue'
 import request from '@/api'
 import { toast } from 'vue-sonner'
 
-const router = useRouter()
 const ukeys = ref<any[]>([])
 const loading = ref(true)
 
