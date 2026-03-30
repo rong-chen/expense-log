@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref } from 'vue'
 import { RouterView, useRoute, useRouter } from 'vue-router'
 import BottomNav from '@/components/layout/BottomNav.vue'
 import ReloadPrompt from '@/components/ReloadPrompt.vue'
