@@ -43,15 +43,8 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
-            # 赋予执行权限
             chmod +x /data/expense-log/expense-log-server
-            
-            # 【请根据你的实际情况修改重启命令】
-            # 如果你是跑在 Docker 里：
-            # cd /data/expense-log && docker-compose restart backend
-            # 如果是用 systemd 守护进程：
-            # systemctl restart expense-log
-            # 如果是用 supervisor/pm2 则类似： supervisorctl restart expense-log
+            systemctl restart expense-log
 
   deploy-frontend:
     name: Build & Deploy Frontend
