@@ -75,7 +75,19 @@ func (ctrl *ukeyController) ListUkeys(c *gin.Context) {
 		return
 	}
 
-	response.Success(c, res)
+	var formattedRes []map[string]interface{}
+	for _, u := range res {
+		formattedRes = append(formattedRes, map[string]interface{}{
+			"id":         u.ID,
+			"name":       u.Name,
+			"secret_key": u.SecretKey,
+			"created_at": u.CreatedAt,
+			"host":       ctrl.domain + "/api/v1/bill/image",
+			"full_token": "Bearer " + u.SecretKey,
+		})
+	}
+
+	response.Success(c, formattedRes)
 }
 
 func (ctrl *ukeyController) DeleteUkey(c *gin.Context) {

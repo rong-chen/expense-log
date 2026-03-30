@@ -17,7 +17,7 @@ import (
 type UkeyResponse struct {
 	ID        uuid.UUID `json:"id"`
 	Name      string    `json:"name"`
-	SecretKey string    `json:"secret_key"` // 会被打码
+	SecretKey string    `json:"secret_key"` // 明文返回
 	CreatedAt time.Time `json:"created_at"`
 }
 
@@ -73,15 +73,10 @@ func (s *ukeyService) ListUkeys(userID uuid.UUID) ([]UkeyResponse, error) {
 
 	var res []UkeyResponse
 	for _, k := range ukeys {
-		masked := k.SecretKey
-		if len(masked) > 20 { // exp_sk_uuid = 7+36 = 43 位
-			// 保留 exp_sk_ (7位) 和最后 4 位
-			masked = fmt.Sprintf("%s****%s", masked[:7], masked[len(masked)-4:])
-		}
 		res = append(res, UkeyResponse{
 			ID:        k.ID,
 			Name:      k.Name,
-			SecretKey: masked,
+			SecretKey: k.SecretKey,
 			CreatedAt: k.CreatedAt,
 		})
 	}
@@ -119,7 +114,7 @@ func (s *ukeyService) DeleteUkey(id uuid.UUID, userID uuid.UUID) error {
 		// 删除缓存
 		s.rdb.Del(context.Background(), fmt.Sprintf("ukey:%s", ukey.SecretKey))
 	}
-	
+
 	// 从数据库删除
 	return s.repo.Delete(id, userID)
 }
