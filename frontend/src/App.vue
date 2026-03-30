@@ -29,7 +29,7 @@ router.isReady().then(() => {
     <BottomNav v-if="isRouterReady && !route.meta.hideBottomNav && route.name !== 'Login' && route.name !== 'Register'" />
 
     <!-- 全局轻提示组件 -->
-    <Toaster position="top-center" richColors />
+    <Toaster position="bottom-center" />
     
     <!-- PWA 更新提示弹窗 -->
     <ReloadPrompt />

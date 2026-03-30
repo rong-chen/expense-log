@@ -7,6 +7,8 @@ import { toast } from 'vue-sonner'
 
 const ukeys = ref<any[]>([])
 const loading = ref(true)
+const creating = ref(false)
+const deletingId = ref('')
 
 // 获取后的快捷指令配置参数
 const hostUrl = ref('')
@@ -40,31 +42,37 @@ async function fetchUkeys() {
 
 async function createUkey() {
   try {
+    creating.value = true
     // 默认名称
     const res: any = await request.post('/user/ukey', { name: 'iOS 快捷指令' })
     if (res.code === 0) {
       hostUrl.value = res.data.host
       ukeyFull.value = res.data.ukey
-      toast.success('凭证创建成功！')
+
       fetchUkeys()
     } else {
       toast.error(res.msg || '创建失败')
     }
   } catch (error: any) {
     toast.error(error.msg || '网络或未知错误')
+  } finally {
+    creating.value = false
   }
 }
 
 async function deleteUkey(id: string) {
   if (!confirm('确定要删除此凭证吗？关联的自动化指令将立即失效！')) return
   try {
+    deletingId.value = id
     const res: any = await request.delete(`/user/ukey/${id}`)
     if (res.code === 0) {
-      toast.success('删除成功')
+
       fetchUkeys()
     }
   } catch (error: any) {
     toast.error(error.msg || '删除失败')
+  } finally {
+    deletingId.value = ''
   }
 }
 
@@ -74,7 +82,6 @@ function copyToClipboard(text: string) {
   if (!text) return
 
   clipboard.writeText(text).then(() => {
-    toast.success('已复制到剪贴板！')
   }).catch((err) => {
     console.warn("Clipboard polyfill failed:", err)
     toast.error('复制失败，请长按下方配置文本手动复制')
@@ -126,8 +133,8 @@ onMounted(() => {
       <div class="key-list" v-else>
         <div class="list-header">
           <h2>环境凭证</h2>
-          <button class="btn-create" @click="createUkey" :disabled="ukeys.length > 0" :class="{ disabled: ukeys.length > 0 }">
-            <Plus :size="18" /> 创建部署环境
+          <button class="btn-create" @click="createUkey" :disabled="ukeys.length > 0 || creating" :class="{ disabled: ukeys.length > 0 || creating }">
+            <Plus :size="18" v-if="!creating" /> {{ creating ? '创建中...' : '创建部署环境' }}
           </button>
         </div>
 
@@ -143,8 +150,9 @@ onMounted(() => {
             <div class="key-value">{{ k.secret_key }}</div>
             <div class="key-date">创建于 {{ new Date(k.created_at).toLocaleString() }}</div>
           </div>
-          <button class="btn-delete" @click="deleteUkey(k.id)">
-            <Trash2 :size="18" />
+          <button class="btn-delete" @click="deleteUkey(k.id)" :disabled="deletingId === k.id">
+            <Trash2 :size="18" v-if="deletingId !== k.id" />
+            <span v-else style="font-size: 0.8rem;">...</span>
           </button>
         </div>
       </div>

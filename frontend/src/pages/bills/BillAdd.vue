@@ -28,7 +28,7 @@ const saving = ref(false)
 function onDateChange() {
   if (!form.value.created_at) {
     form.value.created_at = getNowDatetime()
-    toast.success('已自动恢复为当前时间')
+
   }
 }
 
@@ -56,7 +56,7 @@ async function submitBill() {
     })
     
     if (res.code === 0) {
-      toast.success('账单录入成功！')
+
       router.back()
     } else {
       toast.error(res.msg || '录入失败')

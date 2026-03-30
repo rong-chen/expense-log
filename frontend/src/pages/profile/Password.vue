@@ -23,7 +23,7 @@ async function submit() {
       new_password: newPassword.value
     })
     if (res.code === 0) {
-      toast.success('密码修改成功,下次请用新密码登录')
+
       oldPassword.value = ''
       newPassword.value = ''
       setTimeout(() => router.back(), 1500)

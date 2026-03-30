@@ -22,6 +22,7 @@ const auth = useAuthStore()
 const router = useRouter()
 const activeTab = ref<'text' | 'chart'>('text')
 const cameraInput = ref<HTMLInputElement | null>(null)
+const isUploading = ref(false)
 
 const stats = ref({
   monthExpense: 0,
@@ -131,10 +132,9 @@ function handleImageUpload(e: Event) {
   const file = target.files[0]
   target.value = '' // 立即清空，允许连续触发拍照
 
-  toast.info('正在上传识别中，请稍候...')
+  isUploading.value = true
   billApi.uploadImage(file).then((res: any) => {
     if (res === 'success' || res?.code === 0) {
-      toast.success('识别成功，账单已录入！')
       fetchAnalytics()
       fetchRecentBills()
     } else {
@@ -143,6 +143,8 @@ function handleImageUpload(e: Event) {
   }).catch((err) => {
     console.error('Upload failed:', err)
     toast.error('上传失败，请检查网络后重试')
+  }).finally(() => {
+    isUploading.value = false
   })
 }
 
@@ -155,6 +157,14 @@ onMounted(() => {
 
 <template>
   <div class="home-page">
+    <!-- 全屏上传 Loading -->
+    <div v-if="isUploading" class="global-upload-overlay">
+      <div class="spinner-container">
+        <div class="loader-spinner"></div>
+        <p>正在智能识别账单...</p>
+      </div>
+    </div>
+
     <!-- 顶部 Header -->
     <div class="home-header">
       <div class="header-logo">
@@ -441,4 +451,56 @@ onMounted(() => {
   justify-content: center; padding: 40px 0; color: var(--text-secondary);
 }
 .chart-empty p { margin: 0; font-size: 0.9rem; }
+
+/* 全局上传 Loading 遮罩层 */
+.global-upload-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 9999;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.dark .global-upload-overlay {
+  background: rgba(20, 18, 24, 0.85);
+}
+
+.spinner-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.spinner-container p {
+  color: var(--primary);
+  font-weight: 600;
+  font-size: 0.95rem;
+  margin: 0;
+  letter-spacing: 0.5px;
+}
+
+.loader-spinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid var(--primary-soft);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
 </style>

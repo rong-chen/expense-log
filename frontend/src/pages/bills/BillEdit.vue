@@ -10,6 +10,8 @@ const router = useRouter()
 
 const billID = route.params.id as string
 const loading = ref(true)
+const saving = ref(false)
+const deleting = ref(false)
 
 const CATEGORIES = ['餐饮', '交通', '购物', '娱乐', '生活缴费', '转账', '医疗', '其他']
 
@@ -59,7 +61,7 @@ function onDateChange() {
     const d = new Date()
     const pad = (n: number) => n.toString().padStart(2, '0')
     editForm.value.created_at = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
-    toast.success('已自动恢复为当前时间')
+
   }
 }
 
@@ -67,6 +69,7 @@ async function confirmSave() {
   if (!editForm.value.created_at) {
     onDateChange()
   }
+  saving.value = true
   try {
     const res: any = await billApi.updateBill(billID, {
       amount: Number(editForm.value.amount),
@@ -77,29 +80,34 @@ async function confirmSave() {
     })
     
     if (res.code === 0) {
-      toast.success('账单已保存')
+
       router.back()
     } else {
       toast.error(res.msg || '保存失败')
     }
   } catch (err) {
     toast.error('保存请求失败')
+  } finally {
+    saving.value = false
   }
 }
 
 async function confirmDelete() {
   if (!confirm('确定要永久删除这笔账单吗？删除后将不可恢复。')) return
 
+  deleting.value = true
   try {
     const res: any = await billApi.deleteBill(billID)
     if (res.code === 0) {
-      toast.success('账单已永久删除')
+
       router.back()
     } else {
       toast.error(res.msg || '删除失败')
     }
   } catch (err) {
     toast.error('删除请求失败')
+  } finally {
+    deleting.value = false
   }
 }
 </script>
@@ -155,8 +163,12 @@ async function confirmDelete() {
       </div>
 
       <div class="bottom-actions">
-        <button class="btn btn-primary" @click="confirmSave">保存并返回</button>
-        <button class="btn btn-danger" @click="confirmDelete">永久删除此账单</button>
+        <button class="btn btn-primary" @click="confirmSave" :disabled="saving || deleting">
+          {{ saving ? '保存中...' : '保存并返回' }}
+        </button>
+        <button class="btn btn-danger" @click="confirmDelete" :disabled="saving || deleting">
+          {{ deleting ? '删除中...' : '永久删除此账单' }}
+        </button>
       </div>
     </div>
   </div>
