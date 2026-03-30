@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { Plus, Trash2, Calendar, Power } from 'lucide-vue-next'
+import { useRouter } from 'vue-router'
+import { Plus, Trash2, Power } from 'lucide-vue-next'
 import TopNavBar from '@/components/layout/TopNavBar.vue'
 import request from '@/api'
 import { toast } from 'vue-sonner'
 
-const CATEGORIES = ['餐饮', '交通', '购物', '娱乐', '生活缴费', '转账', '医疗', '其他']
+const router = useRouter()
 
 interface RecurringBill {
   ID: string
@@ -20,19 +21,7 @@ interface RecurringBill {
 
 const loading = ref(true)
 const list = ref<RecurringBill[]>([])
-const showForm = ref(false)
-const saving = ref(false)
 const deletingId = ref('')
-
-const form = ref({
-  amount: '',
-  merchant: '',
-  category: '生活缴费',
-  remark: '',
-  day_of_month: 1
-})
-
-const editingId = ref<string | null>(null)
 
 async function fetchList() {
   loading.value = true
@@ -45,65 +34,6 @@ async function fetchList() {
     toast.error('获取周期账单失败')
   } finally {
     loading.value = false
-  }
-}
-
-function openAdd() {
-  editingId.value = null
-  form.value = { amount: '', merchant: '', category: '生活缴费', remark: '', day_of_month: 1 }
-  showForm.value = true
-}
-
-function openEdit(item: RecurringBill) {
-  editingId.value = item.ID
-  form.value = {
-    amount: String(item.amount),
-    merchant: item.merchant,
-    category: item.category || '其他',
-    remark: item.remark || '',
-    day_of_month: item.day_of_month
-  }
-  showForm.value = true
-}
-
-async function submitForm() {
-  const amt = Number(form.value.amount)
-  if (!amt || amt <= 0) {
-    toast.error('请输入有效金额')
-    return
-  }
-  if (!form.value.merchant.trim()) {
-    toast.error('请输入项目名称')
-    return
-  }
-
-  saving.value = true
-  try {
-    const payload = {
-      amount: amt,
-      merchant: form.value.merchant.trim(),
-      category: form.value.category,
-      remark: form.value.remark.trim(),
-      day_of_month: form.value.day_of_month
-    }
-
-    let res: any
-    if (editingId.value) {
-      res = await request.put(`/recurring/${editingId.value}`, payload)
-    } else {
-      res = await request.post('/recurring', payload)
-    }
-
-    if (res.code === 0) {
-      showForm.value = false
-      fetchList()
-    } else {
-      toast.error(res.msg || '保存失败')
-    }
-  } catch {
-    toast.error('网络或未知错误')
-  } finally {
-    saving.value = false
   }
 }
 
@@ -137,9 +67,6 @@ async function toggleActive(id: string) {
   }
 }
 
-// 生成 1-31 的日期选项
-const dayOptions = Array.from({ length: 31 }, (_, i) => i + 1)
-
 onMounted(() => {
   fetchList()
 })
@@ -158,7 +85,7 @@ onMounted(() => {
       <div class="card-area">
         <div class="card-header">
           <h2>周期列表</h2>
-          <button class="btn-add" @click="openAdd" :disabled="saving">
+          <button class="btn-add" @click="router.push('/recurring/add')">
             <Plus :size="18" /> 新增
           </button>
         </div>
@@ -172,7 +99,7 @@ onMounted(() => {
         <div v-else class="list">
           <div v-for="item in list" :key="item.ID" class="recurring-card" :class="{ inactive: !item.is_active }">
             <div class="card-top">
-              <div class="card-info" @click="openEdit(item)">
+              <div class="card-info" @click="router.push('/recurring/edit/' + item.ID)">
                 <div class="card-name">{{ item.merchant }}</div>
                 <div class="card-meta">
                   <span class="tag">{{ item.category || '未分类' }}</span>
@@ -200,53 +127,6 @@ onMounted(() => {
               </div>
             </div>
           </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- 新增/编辑弹窗 -->
-    <div class="modal-overlay" v-if="showForm" @click.self="showForm = false">
-      <div class="modal-content form-modal">
-        <h3>{{ editingId ? '编辑周期账单' : '新增周期账单' }}</h3>
-
-        <div class="form-group amount-group">
-          <label>每期金额 (¥)</label>
-          <input type="number" step="0.01" v-model="form.amount" class="form-control amount-input" placeholder="0.00" inputmode="decimal" />
-        </div>
-
-        <div class="form-group">
-          <label>项目名称</label>
-          <input type="text" v-model="form.merchant" class="form-control" placeholder="例如：房租、Apple Music" />
-        </div>
-
-        <div class="form-group">
-          <label>分类</label>
-          <div class="category-grid">
-            <button
-              v-for="c in CATEGORIES" :key="c"
-              :class="['category-chip', { active: form.category === c }]"
-              @click="form.category = c"
-            >{{ c }}</button>
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label><Calendar :size="14" style="vertical-align: middle; margin-right: 4px;" />每月扣款日</label>
-          <select v-model.number="form.day_of_month" class="form-control">
-            <option v-for="d in dayOptions" :key="d" :value="d">{{ d }} 号</option>
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label>备注</label>
-          <textarea v-model="form.remark" class="form-control remark-textarea" placeholder="可选" rows="2"></textarea>
-        </div>
-
-        <div class="form-actions">
-          <button class="btn btn-cancel" @click="showForm = false">取消</button>
-          <button class="btn btn-primary" @click="submitForm" :disabled="saving">
-            {{ saving ? '保存中...' : '保存' }}
-          </button>
         </div>
       </div>
     </div>
@@ -414,137 +294,4 @@ onMounted(() => {
   color: var(--danger);
 }
 .action-btn:active { transform: scale(0.93); }
-
-/* 弹窗 */
-.modal-overlay {
-  position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0,0,0,0.4);
-  display: flex;
-  justify-content: center;
-  align-items: flex-end;
-  z-index: 1000;
-  animation: fadeIn 0.2s ease-out;
-}
-.form-modal {
-  background: white;
-  width: 100%;
-  max-width: 500px;
-  border-radius: 24px 24px 0 0;
-  padding: 28px 24px calc(24px + env(safe-area-inset-bottom));
-  max-height: 90vh;
-  overflow-y: auto;
-  animation: slideUp 0.3s ease-out;
-}
-.form-modal h3 {
-  font-size: 1.15rem;
-  font-weight: 700;
-  margin: 0 0 20px 0;
-  text-align: center;
-}
-
-.form-group {
-  display: flex;
-  flex-direction: column;
-  margin-bottom: 16px;
-}
-.form-group label {
-  font-size: 0.85rem;
-  color: var(--text-secondary);
-  margin-bottom: 8px;
-  font-weight: 600;
-}
-.form-control {
-  width: 100%;
-  border: 1px solid rgba(0,0,0,0.08);
-  border-radius: 12px;
-  padding: 14px 16px;
-  font-size: 1rem;
-  font-family: inherit;
-  background: #fafafa;
-  outline: none;
-  color: var(--text-primary);
-  transition: all 0.2s;
-  -webkit-appearance: none;
-  appearance: none;
-}
-.form-control:focus {
-  border-color: var(--primary);
-  background: white;
-  box-shadow: 0 4px 12px rgba(26, 188, 156, 0.1);
-}
-
-.amount-group {
-  border-bottom: 1px dashed rgba(0,0,0,0.1);
-  padding-bottom: 16px;
-}
-.amount-input {
-  font-size: 2rem !important;
-  font-weight: 800;
-  color: var(--primary) !important;
-  height: auto !important;
-  padding: 8px 0 !important;
-  background: transparent !important;
-  border: none !important;
-  border-radius: 0 !important;
-}
-
-.category-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-.category-chip {
-  padding: 6px 14px;
-  border-radius: 20px;
-  border: 1.5px solid rgba(0,0,0,0.08);
-  background: #fafafa;
-  font-size: 0.85rem;
-  font-weight: 500;
-  color: var(--text-secondary);
-  cursor: pointer;
-  transition: all 0.2s;
-}
-.category-chip.active {
-  background: var(--primary);
-  color: white;
-  border-color: var(--primary);
-}
-.category-chip:active { transform: scale(0.95); }
-
-.remark-textarea { resize: none; }
-
-.form-actions {
-  display: flex;
-  gap: 12px;
-  margin-top: 8px;
-}
-.btn {
-  flex: 1;
-  padding: 16px;
-  border-radius: 14px;
-  font-size: 1rem;
-  font-weight: 700;
-  cursor: pointer;
-  border: none;
-  text-align: center;
-  transition: all 0.15s;
-}
-.btn-cancel {
-  background: #f0f0f0;
-  color: var(--text-secondary);
-}
-.btn-primary {
-  background: var(--primary);
-  color: white;
-  box-shadow: 0 6px 20px rgba(26, 188, 156, 0.3);
-}
-.btn-primary:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-.btn:active { transform: scale(0.98); }
-
-@keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }
-@keyframes slideUp { from { transform: translateY(100%) } to { transform: translateY(0) } }
 </style>

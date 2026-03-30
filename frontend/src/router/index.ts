@@ -29,6 +29,18 @@ const router = createRouter({
       meta: { requiresAuth: true, hideBottomNav: true }
     },
     {
+      path: '/recurring/add',
+      name: 'RecurringAdd',
+      component: () => import('../pages/profile/RecurringAdd.vue'),
+      meta: { requiresAuth: true, hideBottomNav: true }
+    },
+    {
+      path: '/recurring/edit/:id',
+      name: 'RecurringEdit',
+      component: () => import('../pages/profile/RecurringAdd.vue'),
+      meta: { requiresAuth: true, hideBottomNav: true }
+    },
+    {
       path: '/:pathMatch(.*)*',
       name: 'register',
       component: () => import('@/pages/auth/Register.vue'),
