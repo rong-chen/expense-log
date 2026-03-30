@@ -77,27 +77,17 @@ function copyToClipboard(text: string) {
 function copyConfig(host: string, ukey: string) {
   const jsonStr = JSON.stringify({ host, ukey }, null, 2)
   copyToClipboard(jsonStr)
+  toast.success('复制成功', { duration: 2000 })
 }
 
-// iOS 一键直达打开快捷指令
-function copyAndOpenShortcuts(host: string, ukey: string) {
-  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
-  
-  if (!isIOS) {
-    alert('⚠️ 此功能只适用于 iPhone 或 iPad 的 Safari 浏览器。\n如果当前是在电脑端，请使用上方「复制配置」并在手机上保存。')
-    return
+// 导入快捷指令时，顺手帮用户复制配置
+function installShortcut() {
+  if (ukeys.value.length > 0) {
+    const k = ukeys.value[0]
+    const jsonStr = JSON.stringify({ host: k.host, ukey: k.full_token }, null, 2)
+    copyToClipboard(jsonStr)
+    toast.success('配置已自动复制！\n安装完毕后，请打开该快捷指令并粘贴到最顶部的【文本】框中。', { duration: 5000 })
   }
-
-  // 1. 复制文本到剪贴板
-  const jsonStr = JSON.stringify({ host, ukey }, null, 2)
-  copyToClipboard(jsonStr)
-  
-  toast.success('配置已自动复制！\n即将跳转，请找【文本】框粘贴。', { duration: 4000 })
-
-  // 2. 直接唤醒 Shortcuts App（不带参数传递，只打开主界面供用户自己点）
-  setTimeout(() => {
-    window.location.href = `shortcuts://`
-  }, 800)
 }
 
 onMounted(() => {
@@ -148,18 +138,16 @@ onMounted(() => {
             <code>{{ k.full_token }}</code>
           </div>
 
-          <div style="display: flex; gap: 12px; margin-top: 8px;">
-            <button class="btn-primary" @click="copyConfig(k.host, k.full_token)" style="flex: 1;">复制配置</button>
-            <button class="btn-primary btn-shortcut" @click="copyAndOpenShortcuts(k.host, k.full_token)" style="flex: 1.5; display: flex; align-items: center; justify-content: center; gap: 4px;">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
-              复制并打开捷径
-            </button>
+          <div style="margin-top: 16px;">
+            <button class="btn-primary" @click="copyConfig(k.host, k.full_token)" style="width: 100%;">复制配置到剪贴板</button>
           </div>
         </div>
       </div>
 
       <!-- 常驻：导入快捷指令入口 -->
-      <a :href="SHORTCUT_LINK" class="btn-install" target="_blank" style="margin-top: 24px;">导入 iOS 快捷指令</a>
+      <a :href="SHORTCUT_LINK" class="btn-install" target="_blank" style="margin-top: 24px;" @click="installShortcut">
+        导入 iOS 快捷指令
+      </a>
     </div>
   </div>
 </template>
