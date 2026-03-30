@@ -1,0 +1,94 @@
+name: Deploy Expense Log
+
+on:
+  push:
+    branches:
+      - main
+      - master
+
+jobs:
+  deploy-backend:
+    name: Build & Deploy Backend
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22' # 保持与你本地 Go 版本兼容
+          cache-dependency-path: server/go.sum
+
+      - name: Build Go Backend
+        run: |
+          cd server
+          # 禁用 CGO，指定目标系统为 Linux AMD64（大多数云服务器架构）
+          CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-w -s" -o expense-log-server ./cmd/main.go
+
+      - name: SCP Backend Binary to Server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          source: "server/expense-log-server"
+          target: "/data/expense-log"
+          strip_components: 1 # 去掉外层的 server/ 目录，直接传文件进去
+
+      - name: Restart Backend Service
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+            # 赋予执行权限
+            chmod +x /data/expense-log/expense-log-server
+            
+            # 【请根据你的实际情况修改重启命令】
+            # 如果你是跑在 Docker 里：
+            # cd /data/expense-log && docker-compose restart backend
+            # 如果是用 systemd 守护进程：
+            # systemctl restart expense-log
+            # 如果是用 supervisor/pm2 则类似： supervisorctl restart expense-log
+
+  deploy-frontend:
+    name: Build & Deploy Frontend
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install & Build Frontend
+        run: |
+          cd frontend
+          npm install
+          npm run build
+          # 构建产物将在 frontend/dist 目录下
+
+      - name: SCP Frontend Dist to Nginx
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          source: "frontend/dist/*"
+          # 注意：这里需要填入你真实的 Nginx 静态文件路径
+          target: "${{ secrets.NGINX_HTML_PATH }}" 
+          strip_components: 2 # 剥离 frontend/dist/ 目录，直接输出构建的文件
+
+      - name: Reload Nginx
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+            # 重新加载 nginx 配置
+            nginx -s reload || systemctl reload nginx

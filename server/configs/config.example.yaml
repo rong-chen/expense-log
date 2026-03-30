@@ -1,0 +1,59 @@
+# 数据库与缓存全局配置文件
+server:
+  port: 8808
+  domain: "http://192.168.10.196:8808"
+database:
+  postgres:
+    # 基础连接信息
+    host: "localhost"
+    port: 5433
+    user: "expense_log_admin"
+#    password: "${DB_PASSWORD}" # 建议通过环境变量注入
+    password: "expense_log_postgres@!!" # 建议通过环境变量注入
+
+    dbname: "expense_log"
+    ssl_mode: "disable"        # 生产环境建议开启 'verify-full'
+    # 连接池优化
+    max_open_conns: 25         # 最大开放连接数
+    max_idle_conns: 10         # 最大空闲连接数
+    conn_max_lifetime: "1h"    # 连接最长存活时间
+    # 超时设置
+    connect_timeout: "5s"      # 连接超时
+
+cache:
+  redis:
+    # 基础连接信息
+    host: "localhost"
+    port: 6381
+#    password: "${REDIS_PASSWORD}"
+    password: "expense_log_redis@!!"
+    db: 0                      # 默认数据库索引
+
+    # 连接池设置
+    pool_size: 100             # 连接池大小
+    min_idle_conns: 10         # 最小空闲连接
+
+    # 性能与超时
+    dial_timeout: "5s"         # 拨号超时
+    read_timeout: "3s"         # 读取超时
+    write_timeout: "3s"        # 写入超时
+
+    # 集群/哨兵模式预留 (可选)
+    is_cluster: false
+
+jwt:
+  secret: "expense-log-secret-key-change-in-production"
+  access_token_expire: "15m"       # Access Token 有效期
+  refresh_token_expire: "168h"     # Refresh Token 有效期 (7天)
+
+email:
+  poll_interval: "5m"                 # 定时拉取间隔
+  attachment_dir: "./attachments"     # 附件存储目录
+
+
+# 支持openai的llm
+llm:
+  provider: "qwen"                        # 此处是用百炼的，用于识别图像等
+  api_key: "sk-54xxxxxxx"                 # 百炼 API Key (请替换)
+  base_url: "https://dashscxxxxxxx.com"   # 百炼 API Base URL (请替换)
+  model: "qwen3-vl-flash"                

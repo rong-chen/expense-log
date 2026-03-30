@@ -1,0 +1,36 @@
+package item
+
+import (
+	"expense-log/internal/controller"
+	"expense-log/internal/middleware"
+	"expense-log/internal/model"
+	"expense-log/internal/repository"
+	"expense-log/internal/service"
+
+	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
+)
+
+func NewUserRouter(router *gin.RouterGroup, db *gorm.DB, jwtCfg model.JWTConfig) {
+	r := router.Group("/user")
+	// 注册所有层，，，
+	repo := repository.NewUserRepository(db)
+	serv := service.NewUserService(repo, jwtCfg)
+	con := controller.NewUserController(serv, jwtCfg)
+
+	// 公开路由 (无需认证)
+	{
+		r.POST("/register", con.Register)
+		r.POST("/login", con.Login)
+		r.POST("/refresh", con.RefreshToken)
+	}
+
+	// 受保护路由 (需 JWT 中间件)
+	authGroup := r.Group("")
+	authGroup.Use(middleware.JWTAuth([]byte(jwtCfg.Secret)))
+	{
+		authGroup.GET("/info", con.GetUserInfo)
+		authGroup.POST("/logout", con.Logout)
+		authGroup.POST("/password", con.UpdatePassword)
+	}
+}
