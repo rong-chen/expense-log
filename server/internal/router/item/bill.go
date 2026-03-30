@@ -13,9 +13,10 @@ import (
 )
 
 // NewBillRouter 注册账单路由
-func NewBillRouter(r *gin.RouterGroup, db *gorm.DB, rdb *redis.Client, jwtCfg model.JWTConfig, llmProvider llm.Provider) {
+func NewBillRouter(r *gin.RouterGroup, db *gorm.DB, rdb *redis.Client, jwtCfg model.JWTConfig, llmProvider llm.Provider, llmCfg model.LLMConfig) {
 	billServ := service.NewBillService(db, rdb)
-	billCtrl := controller.NewBillController(billServ, db, llmProvider)
+	quotaServ := service.NewQuotaService(rdb)
+	billCtrl := controller.NewBillController(billServ, db, llmProvider, quotaServ, llmCfg)
 
 	billGroup := r.Group("/bill")
 

@@ -93,10 +93,12 @@ async function handleLogin() {
           </button>
         </form>
 
+        <!-- 暂时关闭开放注册
         <div class="card-footer">
           <span class="text-mute">没有账号？</span>
           <router-link to="/register" replace class="text-link">去注册</router-link>
         </div>
+        -->
       </div>
       
       <div class="bottom-links">

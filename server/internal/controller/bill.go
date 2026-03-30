@@ -35,13 +35,15 @@ type BillController interface {
 }
 
 type billController struct {
-	serv     service.BillService
-	db       *gorm.DB
-	provider llm.Provider
+	serv      service.BillService
+	db        *gorm.DB
+	provider  llm.Provider
+	quotaServ service.QuotaService
+	llmCfg    model.LLMConfig
 }
 
-func NewBillController(serv service.BillService, db *gorm.DB, provider llm.Provider) BillController {
-	return &billController{serv: serv, db: db, provider: provider}
+func NewBillController(serv service.BillService, db *gorm.DB, provider llm.Provider, quotaServ service.QuotaService, llmCfg model.LLMConfig) BillController {
+	return &billController{serv: serv, db: db, provider: provider, quotaServ: quotaServ, llmCfg: llmCfg}
 }
 
 func (ctrl *billController) getUserID(c *gin.Context) (uuid.UUID, bool) {
@@ -192,6 +194,15 @@ func (ctrl *billController) UploadImageReceipt(c *gin.Context) {
 
 	userIDValue, _ := c.Get("userID")
 	userID, _ := userIDValue.(uuid.UUID)
+
+	// 提前检查并扣除额度
+	imageCount := len(readers)
+	ctxQuota := context.Background()
+	_, errQuota := ctrl.quotaServ.CheckAndConsumeQuota(ctxQuota, userID, imageCount, ctrl.llmCfg.DailyQuota)
+	if errQuota != nil {
+		response.Fail(c, http.StatusTooManyRequests, 42901, fmt.Sprintf("今日 AI 识图额度不足 (每人每日最多 %d 张)，还需要 %d 张", ctrl.llmCfg.DailyQuota, imageCount))
+		return
+	}
 
 	successCount := 0
 

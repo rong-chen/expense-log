@@ -21,7 +21,7 @@ func NewUserRouter(router *gin.RouterGroup, db *gorm.DB, rdb *redis.Client, jwtC
 
 	// 公开路由 (无需认证)
 	{
-		r.POST("/register", con.Register)
+		// r.POST("/register", con.Register) // 暂时关闭开放注册，后续接入手机验证
 		r.POST("/login", con.Login)
 		r.POST("/refresh", con.RefreshToken)
 	}

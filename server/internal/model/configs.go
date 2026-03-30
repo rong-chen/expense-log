@@ -38,10 +38,11 @@ type EmailConfig struct {
 
 // LLMConfig 大模型调用配置
 type LLMConfig struct {
-	Provider string `mapstructure:"provider"` // qwen | doubao | glm
-	APIKey   string `mapstructure:"api_key"`
-	BaseURL  string `mapstructure:"base_url"`
-	Model    string `mapstructure:"model"`
+	Provider   string `mapstructure:"provider"` // qwen | doubao | glm
+	APIKey     string `mapstructure:"api_key"`
+	BaseURL    string `mapstructure:"base_url"`
+	Model      string `mapstructure:"model"`
+	DailyQuota int    `mapstructure:"daily_quota"`
 }
 
 type DatabaseConfig struct {
