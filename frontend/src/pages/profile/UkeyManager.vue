@@ -73,20 +73,17 @@ function copyToClipboard(text: string) {
   })
 }
 
-// 复制具体 JSON 配置
-function copyConfig(host: string, ukey: string) {
+// 复制具体 JSON 配置并安装快捷指令
+function copyAndInstall(host: string, ukey: string) {
   const jsonStr = JSON.stringify({ host, ukey }, null, 2)
   copyToClipboard(jsonStr)
-  toast.success('复制成功', { duration: 2000 })
-}
-
-// 导入快捷指令时，顺手帮用户复制配置
-function installShortcut() {
-  if (ukeys.value.length > 0) {
-    const k = ukeys.value[0]
-    const jsonStr = JSON.stringify({ host: k.host, ukey: k.full_token }, null, 2)
-    copyToClipboard(jsonStr)
-    toast.success('配置已自动复制！\n安装完毕后，请打开该快捷指令并粘贴到最顶部的【文本】框中。', { duration: 5000 })
+  
+  // 使用系统原生确认框，确保能阻塞住浏览器的跳转行为，并给出明确提示
+  const proceed = window.confirm('复制成功，请将复制的内容粘贴到对应的输入框中并添加快捷指令')
+  
+  if (proceed) {
+    // 跳转到安装短链
+    window.location.href = SHORTCUT_LINK
   }
 }
 
@@ -138,16 +135,14 @@ onMounted(() => {
             <code>{{ k.full_token }}</code>
           </div>
 
-          <div style="margin-top: 16px;">
-            <button class="btn-primary" @click="copyConfig(k.host, k.full_token)" style="width: 100%;">复制配置到剪贴板</button>
+          <div style="margin-top: 20px;">
+            <button class="btn-primary" @click="copyAndInstall(k.host, k.full_token)" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 6px;">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+              复制配置并添加快捷指令
+            </button>
           </div>
         </div>
       </div>
-
-      <!-- 常驻：导入快捷指令入口 -->
-      <a :href="SHORTCUT_LINK" class="btn-install" target="_blank" style="margin-top: 24px;" @click="installShortcut">
-        导入 iOS 快捷指令
-      </a>
     </div>
   </div>
 </template>
