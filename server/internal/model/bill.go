@@ -52,20 +52,20 @@ func (b *Bill) BeforeCreate(tx *gorm.DB) (err error) {
 	}
 	// 自动生成指纹
 	if b.Fingerprint == "" {
-		b.Fingerprint = GenerateFingerprint(b.TransactionNo, b.Amount, b.TransactionDate, b.Merchant)
+		b.Fingerprint = GenerateFingerprint(b.UserID, b.TransactionNo, b.Amount, b.TransactionDate, b.Merchant)
 	}
 	return
 }
 
 // GenerateFingerprint 生成账单指纹
-//   - 有交易单号: SHA256(transaction_no) → 100% 精确去重
-//   - 无交易单号: SHA256(amount + date + merchant) → 模糊去重
-func GenerateFingerprint(transactionNo string, amount float64, date time.Time, merchant string) string {
+//   - 有交易单号: SHA256(userID + transaction_no) → 100% 精确去重
+//   - 无交易单号: SHA256(userID + amount + date + merchant) → 模糊去重
+func GenerateFingerprint(userID uuid.UUID, transactionNo string, amount float64, date time.Time, merchant string) string {
 	var raw string
 	if transactionNo != "" {
-		raw = transactionNo
+		raw = fmt.Sprintf("%s|%s", userID.String(), transactionNo)
 	} else {
-		raw = fmt.Sprintf("%.2f|%s|%s", amount, date.Format("2006-01-02"), merchant)
+		raw = fmt.Sprintf("%s|%.2f|%s|%s", userID.String(), amount, date.Format("2006-01-02"), merchant)
 	}
 	hash := sha256.Sum256([]byte(raw))
 	return fmt.Sprintf("%x", hash)

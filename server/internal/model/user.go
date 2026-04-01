@@ -22,7 +22,8 @@ type User struct {
 	UID      string `gorm:"type:varchar(50)" json:"uid"`
 
 	// --- 业务相关 ---
-	LastLogin int64 `json:"last_login"` // 最后登录时间戳
+	LastLogin int64  `json:"last_login"`                               // 最后登录时间戳
+	Role      string `gorm:"type:varchar(20);default:'user';not null" json:"role"` // 用户角色: admin, user
 }
 
 func (u *User) BeforeCreate(tx *gorm.DB) (err error) {
@@ -43,9 +44,10 @@ func (u *User) BeforeCreate(tx *gorm.DB) (err error) {
 
 // RegisterRequest 注册请求
 type RegisterRequest struct {
-	Phone    string `json:"phone" binding:"required"`
-	Password string `json:"password" binding:"required,min=6"`
-	Nickname string `json:"nickname"`
+	Phone          string `json:"phone" binding:"required"`
+	Password       string `json:"password" binding:"required,min=6"`
+	Nickname       string `json:"nickname"`
+	InvitationCode string `json:"invitation_code" binding:"required"`
 }
 
 // LoginRequest 登录请求
@@ -72,4 +74,5 @@ type UserInfoResponse struct {
 	Avatar    string `json:"avatar"`
 	Email     string `json:"email"`
 	LastLogin int64  `json:"last_login"`
+	Role      string `json:"role"`
 }

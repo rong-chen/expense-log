@@ -16,12 +16,13 @@ func NewUserRouter(router *gin.RouterGroup, db *gorm.DB, rdb *redis.Client, jwtC
 	r := router.Group("/user")
 	// 注册所有层
 	repo := repository.NewUserRepository(db)
-	serv := service.NewUserService(repo, rdb, jwtCfg)
+	invRepo := repository.NewInvitationRepository(db)
+	serv := service.NewUserService(repo, invRepo, rdb, jwtCfg)
 	con := controller.NewUserController(serv, jwtCfg)
 
 	// 公开路由 (无需认证)
 	{
-		// r.POST("/register", con.Register) // 暂时关闭开放注册，后续接入手机验证
+		r.POST("/register", con.Register) // 重新启用邀请码注册
 		r.POST("/login", con.Login)
 		r.POST("/refresh", con.RefreshToken)
 	}

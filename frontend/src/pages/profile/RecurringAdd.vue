@@ -21,7 +21,8 @@ const form = ref({
   merchant: '',
   category: '生活缴费',
   remark: '',
-  day_of_month: 1
+  day_of_month: 1,
+  execute_now: false
 })
 
 // 如果有 id 参数，说明是编辑模式
@@ -38,7 +39,8 @@ async function loadEditData(id: string) {
           merchant: item.merchant,
           category: item.category || '其他',
           remark: item.remark || '',
-          day_of_month: item.day_of_month
+          day_of_month: item.day_of_month,
+          execute_now: false
         }
       }
     }
@@ -65,7 +67,8 @@ async function submitForm() {
       merchant: form.value.merchant.trim(),
       category: form.value.category,
       remark: form.value.remark.trim(),
-      day_of_month: form.value.day_of_month
+      day_of_month: form.value.day_of_month,
+      execute_now: form.value.execute_now
     }
 
     let res: any
@@ -136,9 +139,15 @@ onMounted(() => {
           </select>
         </div>
 
-        <div class="form-group">
-          <label>备注</label>
           <textarea v-model="form.remark" class="form-control remark-textarea" placeholder="可选" rows="3"></textarea>
+        </div>
+
+        <div class="form-group row-group" v-if="!editingId">
+          <div class="checkbox-wrapper">
+            <input type="checkbox" id="execute_now" v-model="form.execute_now" class="checkbox-input" />
+            <label for="execute_now" class="checkbox-label">立即生成本月账单记录</label>
+          </div>
+          <p class="help-text">选中后，系统将立即为您补录一笔本月（{{ new Date().getMonth() + 1 }}月）的消费记录。</p>
         </div>
       </div>
 
@@ -284,5 +293,28 @@ onMounted(() => {
 .btn-primary:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+.checkbox-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+.checkbox-input {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
+.checkbox-label {
+  font-size: 0.95rem !important;
+  color: var(--text-primary) !important;
+  margin-bottom: 0 !important;
+  cursor: pointer;
+}
+.help-text {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  margin-top: 4px;
 }
 </style>

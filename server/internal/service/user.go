@@ -25,13 +25,14 @@ type UserService interface {
 }
 type userService struct {
 	repo          repository.UserRepository
+	invitationRepo repository.InvitationRepository
 	rdb           *redis.Client
 	jwtSecret     []byte
 	accessExpire  time.Duration
 	refreshExpire time.Duration
 }
 
-func NewUserService(repo repository.UserRepository, rdb *redis.Client, jwtCfg model.JWTConfig) UserService {
+func NewUserService(repo repository.UserRepository, invitationRepo repository.InvitationRepository, rdb *redis.Client, jwtCfg model.JWTConfig) UserService {
 	accessExpire, err := time.ParseDuration(jwtCfg.AccessTokenExpire)
 	if err != nil {
 		accessExpire = 15 * time.Minute
@@ -41,11 +42,12 @@ func NewUserService(repo repository.UserRepository, rdb *redis.Client, jwtCfg mo
 		refreshExpire = 7 * 24 * time.Hour
 	}
 	return &userService{
-		repo:          repo,
-		rdb:           rdb,
-		jwtSecret:     []byte(jwtCfg.Secret),
-		accessExpire:  accessExpire,
-		refreshExpire: refreshExpire,
+		repo:           repo,
+		invitationRepo: invitationRepo,
+		rdb:            rdb,
+		jwtSecret:      []byte(jwtCfg.Secret),
+		accessExpire:   accessExpire,
+		refreshExpire:  refreshExpire,
 	}
 }
 
@@ -58,6 +60,12 @@ func (u *userService) Register(req *model.RegisterRequest) (*model.TokenResponse
 	}
 	if exists {
 		return nil, errors.New("该手机号已注册")
+	}
+
+	// 1.1. 校验邀请码
+	invitation, err := u.invitationRepo.GetByCode(req.InvitationCode)
+	if err != nil {
+		return nil, errors.New("邀请码无效或已被使用")
 	}
 
 	// 2. bcrypt 加密密码
@@ -83,6 +91,9 @@ func (u *userService) Register(req *model.RegisterRequest) (*model.TokenResponse
 	if err := u.repo.CreateUser(user); err != nil {
 		return nil, err
 	}
+
+	// 4.1. 标记邀请码为已使用
+	_ = u.invitationRepo.MarkAsUsed(invitation.Code, user.ID)
 
 	// 5. 生成双 Token
 	return u.generateTokenPair(user.ID)
@@ -176,6 +187,7 @@ func (u *userService) GetUserInfo(userID uuid.UUID) (*model.UserInfoResponse, er
 		Avatar:    user.Avatar,
 		Email:     user.Email,
 		LastLogin: user.LastLogin,
+		Role:      user.Role,
 	}, nil
 }
 

@@ -11,7 +11,7 @@ import (
 )
 
 type RecurringBillService interface {
-	Create(userID uuid.UUID, rb *model.RecurringBill) error
+	Create(userID uuid.UUID, rb *model.RecurringBill, executeNow bool) error
 	List(userID uuid.UUID) ([]model.RecurringBill, error)
 	Update(userID uuid.UUID, id uuid.UUID, rb *model.RecurringBill) error
 	Delete(userID uuid.UUID, id uuid.UUID) error
@@ -28,9 +28,41 @@ func NewRecurringBillService(db *gorm.DB) RecurringBillService {
 	return &recurringBillService{db: db}
 }
 
-func (s *recurringBillService) Create(userID uuid.UUID, rb *model.RecurringBill) error {
+func (s *recurringBillService) Create(userID uuid.UUID, rb *model.RecurringBill, executeNow bool) error {
 	rb.UserID = userID
-	return s.db.Create(rb).Error
+	if err := s.db.Create(rb).Error; err != nil {
+		return err
+	}
+
+	if executeNow {
+		// 立即执行一次记账
+		now := time.Now()
+		today := now.Format("2006-01-02")
+		
+		// 生成指纹
+		fingerprint := model.GenerateFingerprint(userID, "", rb.Amount, now, rb.Merchant)
+		
+		bill := model.Bill{
+			UserID:          userID,
+			Amount:          rb.Amount,
+			Merchant:        rb.Merchant,
+			Category:        rb.Category,
+			Remark:          fmt.Sprintf("[周期账单-首次导入] %s", rb.Remark),
+			TransactionDate: now,
+			Source:          model.BillSourceRecurring,
+			Fingerprint:     fingerprint,
+		}
+		
+		if err := s.db.Create(&bill).Error; err != nil {
+			log.Printf("[RecurringBill] 首次导入失败 (recurring_id=%s): %v", rb.ID, err)
+			// 虽然导入失败，但定时任务已经创建成功了，所以这里不返回 error
+		} else {
+			// 更新 LastExecAt 防止今天定时任务再次执行
+			s.db.Model(rb).Update("last_exec_at", today)
+		}
+	}
+	
+	return nil
 }
 
 func (s *recurringBillService) List(userID uuid.UUID) ([]model.RecurringBill, error) {
@@ -69,20 +101,20 @@ func (s *recurringBillService) ExecuteDailyTask() {
 	now := time.Now()
 	today := now.Format("2006-01-02")
 	dayOfMonth := now.Day()
-
 	// 判断本月最后一天（用于处理 31 号边界）
 	lastDay := time.Date(now.Year(), now.Month()+1, 0, 0, 0, 0, 0, now.Location()).Day()
 
 	var bills []model.RecurringBill
-	query := s.db.Where("is_active = ? AND (last_exec_at IS NULL OR last_exec_at != ?)", true, today)
+	// 基础条件：启用中 且 今天未执行过
+	query := s.db.Model(&model.RecurringBill{}).
+		Where("is_active = ? AND (last_exec_at IS NULL OR last_exec_at != ?)", true, today)
 
 	if dayOfMonth == lastDay {
 		// 今天是本月最后一天：除了匹配今天的号数，还要匹配所有大于本月最大天数的设置
 		// 比如 2月28日，要同时触发设置为 28、29、30、31 号的配置
-		query = query.Where("day_of_month <= ? OR day_of_month = ?", lastDay, dayOfMonth)
-		// 更精确：day_of_month >= dayOfMonth (当天或更大的都要触发)
-		query = s.db.Where("is_active = ? AND (last_exec_at IS NULL OR last_exec_at != ?) AND day_of_month >= ?", true, today, dayOfMonth)
+		query = query.Where("day_of_month >= ?", dayOfMonth)
 	} else {
+		// 普通日子：精准匹配号数
 		query = query.Where("day_of_month = ?", dayOfMonth)
 	}
 
@@ -100,7 +132,7 @@ func (s *recurringBillService) ExecuteDailyTask() {
 
 	for _, rb := range bills {
 		// 生成指纹用于去重
-		fingerprint := model.GenerateFingerprint("", rb.Amount, now, rb.Merchant)
+		fingerprint := model.GenerateFingerprint(rb.UserID, "", rb.Amount, now, rb.Merchant)
 
 		bill := model.Bill{
 			UserID:          rb.UserID,
@@ -109,7 +141,7 @@ func (s *recurringBillService) ExecuteDailyTask() {
 			Category:        rb.Category,
 			Remark:          fmt.Sprintf("[周期账单] %s", rb.Remark),
 			TransactionDate: now,
-			Source:          "recurring",
+			Source:          model.BillSourceRecurring,
 			Fingerprint:     fingerprint,
 		}
 

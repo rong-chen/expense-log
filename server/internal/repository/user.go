@@ -14,6 +14,7 @@ type UserRepository interface {
 	PhoneExists(phone string) (bool, error)
 	UpdateLastLogin(id uuid.UUID, timestamp int64) error
 	UpdatePassword(id uuid.UUID, password string) error
+	UpdateUserRole(id uuid.UUID, role string) error
 }
 type userRepository struct {
 	db *gorm.DB
@@ -62,4 +63,8 @@ func (r *userRepository) UpdateLastLogin(id uuid.UUID, timestamp int64) error {
 
 func (r *userRepository) UpdatePassword(id uuid.UUID, password string) error {
 	return r.db.Model(&model.User{}).Where("id = ?", id).Update("password", password).Error
+}
+
+func (r *userRepository) UpdateUserRole(id uuid.UUID, role string) error {
+	return r.db.Model(&model.User{}).Where("id = ?", id).Update("role", role).Error
 }

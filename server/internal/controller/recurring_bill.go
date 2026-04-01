@@ -42,6 +42,7 @@ type CreateRecurringBillRequest struct {
 	Category   string  `json:"category"`
 	Remark     string  `json:"remark"`
 	DayOfMonth int     `json:"day_of_month" binding:"required,min=1,max=31"`
+	ExecuteNow bool    `json:"execute_now"`
 }
 
 func (ctrl *recurringBillController) Create(c *gin.Context) {
@@ -64,7 +65,7 @@ func (ctrl *recurringBillController) Create(c *gin.Context) {
 		Remark:     html.EscapeString(req.Remark),
 		DayOfMonth: req.DayOfMonth,
 	}
-	if err := ctrl.serv.Create(userID, &rb); err != nil {
+	if err := ctrl.serv.Create(userID, &rb, req.ExecuteNow); err != nil {
 		response.Fail(c, http.StatusInternalServerError, 50000, "创建失败")
 		return
 	}

@@ -22,6 +22,7 @@ expense-log
 *.exe
 server/expense-log-server
 server/expense-log
+server/main
 
 # ----------------------------------------------------------------------
 # 日志文件
