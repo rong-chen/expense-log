@@ -45,7 +45,7 @@ onMounted(() => {
 
     <div class="menu-list">
 
-      <div class="menu-item" v-if="auth.user?.role === 'admin'" @click="router.push('/admin/invitation')">
+      <div class="menu-item" v-if="auth.user?.role === 'admin'" @click="router.push('/admin')">
         <div class="menu-icon" style="background: rgba(230, 126, 34, 0.12); color: #e67e22">
           <ShieldCheck :size="20" />
         </div>

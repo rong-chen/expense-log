@@ -103,10 +103,31 @@ const router = createRouter({
       meta: { auth: true, hideBottomNav: true }
     },
     {
+      // 管理员入口页
+      path: '/admin',
+      name: 'AdminIndex',
+      component: () => import('@/pages/admin/AdminIndex.vue'),
+      meta: { auth: true, requiresAdmin: true, hideBottomNav: true }
+    },
+    {
       // 管理员邀请码管理
       path: '/admin/invitation',
       name: 'AdminInvitation',
       component: () => import('@/pages/admin/Invitation.vue'),
+      meta: { auth: true, requiresAdmin: true, hideBottomNav: true }
+    },
+    {
+      // 管理员用户管理
+      path: '/admin/users',
+      name: 'AdminUsers',
+      component: () => import('@/pages/admin/UserManagement.vue'),
+      meta: { auth: true, requiresAdmin: true, hideBottomNav: true }
+    },
+    {
+      // 管理层系统监控
+      path: '/admin/stats',
+      name: 'AdminStats',
+      component: () => import('@/pages/admin/SystemStats.vue'),
       meta: { auth: true, requiresAdmin: true, hideBottomNav: true }
     }
   ]
