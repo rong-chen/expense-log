@@ -16,7 +16,6 @@ type UserRepository interface {
 	UpdatePassword(id uuid.UUID, password string) error
 	UpdateUserRole(id uuid.UUID, role string) error
 	ListAll(page, pageSize int) ([]model.User, int64, error)
-	CountTotal() (int64, error)
 }
 type userRepository struct {
 	db *gorm.DB
@@ -80,10 +79,4 @@ func (r *userRepository) ListAll(page, pageSize int) ([]model.User, int64, error
 	offset := (page - 1) * pageSize
 	err := r.db.Order("created_at DESC").Offset(offset).Limit(pageSize).Find(&users).Error
 	return users, total, err
-}
-
-func (r *userRepository) CountTotal() (int64, error) {
-	var count int64
-	err := r.db.Model(&model.User{}).Count(&count).Error
-	return count, err
 }

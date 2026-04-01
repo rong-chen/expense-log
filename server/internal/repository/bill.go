@@ -18,8 +18,6 @@ type BillRepository interface {
 	GetByUserID(userID uuid.UUID, page, pageSize int) ([]model.Bill, int64, error)
 	// GetByID 获取单条账单
 	GetByID(id uuid.UUID) (*model.Bill, error)
-	// CountTotal 获取总账单数
-	CountTotal() (int64, error)
 }
 
 type billRepository struct {
@@ -74,10 +72,4 @@ func (r *billRepository) GetByID(id uuid.UUID) (*model.Bill, error) {
 		return nil, err
 	}
 	return &bill, nil
-}
-
-func (r *billRepository) CountTotal() (int64, error) {
-	var count int64
-	err := r.db.Model(&model.Bill{}).Count(&count).Error
-	return count, err
 }

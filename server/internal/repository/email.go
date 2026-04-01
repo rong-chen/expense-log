@@ -19,7 +19,6 @@ type EmailRepository interface {
 	GetAccountsByUserID(userID uuid.UUID) ([]model.UserEmailAccount, error)
 	GetAllEnabledAccounts() ([]model.UserEmailAccount, error)
 	DeleteAccount(id uuid.UUID, userID uuid.UUID) error
-	CountTotalAccounts() (int64, error)
 }
 
 type emailRepository struct {
@@ -77,10 +76,4 @@ func (r *emailRepository) GetAllEnabledAccounts() ([]model.UserEmailAccount, err
 
 func (r *emailRepository) DeleteAccount(id uuid.UUID, userID uuid.UUID) error {
 	return r.db.Where("id = ? AND user_id = ?", id, userID).Delete(&model.UserEmailAccount{}).Error
-}
-
-func (r *emailRepository) CountTotalAccounts() (int64, error) {
-	var count int64
-	err := r.db.Model(&model.UserEmailAccount{}).Count(&count).Error
-	return count, err
 }

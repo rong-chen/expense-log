@@ -18,9 +18,8 @@ func NewAdminRouter(router *gin.RouterGroup, db *gorm.DB, rdb *redis.Client, jwt
 	userRepo := repository.NewUserRepository(db)
 	billRepo := repository.NewBillRepository(db)
 	emailRepo := repository.NewEmailRepository(db)
-	recurringBillRepo := repository.NewRecurringBillRepository(db)
 
-	serv := service.NewAdminService(userRepo, billRepo, emailRepo, recurringBillRepo)
+	serv := service.NewAdminService(userRepo, billRepo, emailRepo)
 	con := controller.NewAdminController(serv)
 
 	admin.Use(middleware.JWTAuth([]byte(jwtCfg.Secret), rdb))
@@ -28,6 +27,5 @@ func NewAdminRouter(router *gin.RouterGroup, db *gorm.DB, rdb *redis.Client, jwt
 	{
 		admin.GET("/users", con.ListUsers)
 		admin.POST("/role", con.UpdateUserRole)
-		admin.GET("/stats", con.GetSystemStats)
 	}
 }

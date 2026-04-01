@@ -13,7 +13,6 @@ import (
 type AdminController interface {
 	ListUsers(c *gin.Context)
 	UpdateUserRole(c *gin.Context)
-	GetSystemStats(c *gin.Context)
 }
 
 type adminController struct {
@@ -61,12 +60,3 @@ func (con *adminController) UpdateUserRole(c *gin.Context) {
 	response.Success(c, nil)
 }
 
-func (con *adminController) GetSystemStats(c *gin.Context) {
-	stats, err := con.serv.GetSystemStats()
-	if err != nil {
-		response.Fail(c, http.StatusInternalServerError, 50001, "获取系统统计失败: "+err.Error())
-		return
-	}
-
-	response.Success(c, stats)
-}

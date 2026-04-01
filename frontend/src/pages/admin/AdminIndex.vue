@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
-import { UserPlus, Users, Activity, ChevronRight } from 'lucide-vue-next'
+import { UserPlus, Users, ChevronRight } from 'lucide-vue-next'
 import TopNavBar from '@/components/layout/TopNavBar.vue'
 
 const router = useRouter()
@@ -21,14 +21,6 @@ const adminMenus = [
     path: '/admin/users',
     color: '#3498db',
     bg: 'rgba(52, 152, 219, 0.12)'
-  },
-  {
-    title: '系统监控',
-    desc: '实时统计系统活跃度与核心资源使用情况',
-    icon: Activity,
-    path: '/admin/stats',
-    color: '#2ecc71',
-    bg: 'rgba(46, 204, 113, 0.12)'
   }
 ]
 </script>

@@ -122,13 +122,6 @@ const router = createRouter({
       name: 'AdminUsers',
       component: () => import('@/pages/admin/UserManagement.vue'),
       meta: { auth: true, requiresAdmin: true, hideBottomNav: true }
-    },
-    {
-      // 管理层系统监控
-      path: '/admin/stats',
-      name: 'AdminStats',
-      component: () => import('@/pages/admin/SystemStats.vue'),
-      meta: { auth: true, requiresAdmin: true, hideBottomNav: true }
     }
   ]
 })
