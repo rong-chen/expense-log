@@ -86,7 +86,7 @@ export default api
 // --- API 函数 ---
 
 export const authApi = {
-  register: (data: { phone: string; password: string; nickname?: string }) =>
+  register: (data: { phone: string; password: string; invitation_code: string; nickname?: string }) =>
     api.post('/user/register', data),
   login: (data: { phone: string; password: string }) =>
     api.post('/user/login', data),

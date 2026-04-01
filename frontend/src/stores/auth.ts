@@ -10,6 +10,7 @@ interface UserInfo {
   avatar: string
   email: string
   last_login: number
+  role: string
 }
 
 export const useAuthStore = defineStore('auth', () => {

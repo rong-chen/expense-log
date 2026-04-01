@@ -24,7 +24,8 @@ func NewInvitationController(serv service.InvitationService) InvitationControlle
 }
 
 type GenerateRequest struct {
-	Count int `json:"count" binding:"required,min=1,max=100"`
+	Count int    `json:"count" binding:"required,min=1,max=100"`
+	Role  string `json:"role" binding:"omitempty,oneof=user admin"`
 }
 
 func (con *invitationController) Generate(c *gin.Context) {
@@ -34,7 +35,11 @@ func (con *invitationController) Generate(c *gin.Context) {
 		return
 	}
 
-	codes, err := con.serv.Generate(req.Count)
+	if req.Role == "" {
+		req.Role = "user"
+	}
+
+	codes, err := con.serv.Generate(req.Count, req.Role)
 	if err != nil {
 		response.Fail(c, http.StatusInternalServerError, 50001, "生成邀请码失败: "+err.Error())
 		return

@@ -10,12 +10,13 @@ const auth = useAuthStore()
 const phone = ref('')
 const password = ref('')
 const confirmPassword = ref('')
+const invitationCode = ref('')
 const loading = ref(false)
 const error = ref('')
 
 async function handleRegister() {
-  if (!phone.value || !password.value) {
-    error.value = '请填写手机号和密码'
+  if (!phone.value || !password.value || !invitationCode.value) {
+    error.value = '请填写所有必填项'
     return
   }
   if (password.value.length < 6) {
@@ -32,6 +33,7 @@ async function handleRegister() {
     const res: any = await authApi.register({
       phone: phone.value,
       password: password.value,
+      invitation_code: invitationCode.value,
     })
     if (res.code === 0) {
       auth.setAccessToken(res.data.access_token)
@@ -92,12 +94,12 @@ async function handleRegister() {
           </div>
 
           <div class="input-line">
-            <label>确认密码</label>
+            <label>邀请码</label>
             <input 
-              type="password" 
-              v-model="confirmPassword" 
-              placeholder="再次输入确认" 
-              autocomplete="new-password" 
+              type="text" 
+              v-model="invitationCode" 
+              placeholder="请输入 8 位邀请码" 
+              autocomplete="off" 
             />
           </div>
 

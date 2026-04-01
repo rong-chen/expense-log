@@ -84,6 +84,7 @@ func (u *userService) Register(req *model.RegisterRequest) (*model.TokenResponse
 		Phone:     req.Phone,
 		Password:  string(hashedPassword),
 		Nickname:  nickname,
+		Role:      invitation.Role, // 设置为邀请码预设的角色
 		LastLogin: time.Now().Unix(),
 	}
 

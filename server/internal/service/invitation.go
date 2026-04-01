@@ -8,7 +8,7 @@ import (
 )
 
 type InvitationService interface {
-	Generate(count int) ([]string, error)
+	Generate(count int, role string) ([]string, error)
 	List() ([]model.InvitationCode, error)
 }
 
@@ -22,7 +22,7 @@ func NewInvitationService(repo repository.InvitationRepository) InvitationServic
 	}
 }
 
-func (s *invitationService) Generate(count int) ([]string, error) {
+func (s *invitationService) Generate(count int, role string) ([]string, error) {
 	var codes []string
 	for i := 0; i < count; i++ {
 		code, err := generateRandomCode(8)
@@ -31,6 +31,7 @@ func (s *invitationService) Generate(count int) ([]string, error) {
 		}
 		invitation := &model.InvitationCode{
 			Code:   code,
+			Role:   role,
 			IsUsed: false,
 		}
 		if err := s.repo.Create(invitation); err != nil {

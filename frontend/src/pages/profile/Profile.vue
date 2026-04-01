@@ -2,7 +2,7 @@
 import { ref, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { useRouter } from 'vue-router'
-import { Lock, LogOut, ChevronRight, Settings, CalendarClock } from 'lucide-vue-next'
+import { Lock, LogOut, ChevronRight, Settings, CalendarClock, ShieldCheck } from 'lucide-vue-next'
 
 const auth = useAuthStore()
 const router = useRouter()
@@ -44,6 +44,16 @@ onMounted(() => {
     </div>
 
     <div class="menu-list">
+
+      <div class="menu-item" v-if="auth.user?.role === 'admin'" @click="router.push('/admin/invitation')">
+        <div class="menu-icon" style="background: rgba(230, 126, 34, 0.12); color: #e67e22">
+          <ShieldCheck :size="20" />
+        </div>
+        <div class="menu-content">
+          <span>管理后台</span>
+          <ChevronRight :size="18" class="chevron" />
+        </div>
+      </div>
 
       <div class="menu-item" @click="router.push('/ukey')">
         <div class="menu-icon" style="background: rgba(41, 128, 185, 0.12); color: var(--primary)">

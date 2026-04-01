@@ -11,6 +11,7 @@ import (
 type InvitationCode struct {
 	global.Model
 	Code   string    `gorm:"type:varchar(50);uniqueIndex;not null" json:"code"`
+	Role   string    `gorm:"type:varchar(20);not null;default:'user'" json:"role"` // 预设角色
 	IsUsed bool      `gorm:"default:false" json:"is_used"`
 	UsedBy uuid.UUID `gorm:"type:uuid" json:"used_by"` // 使用该邀请码的用户ID
 }

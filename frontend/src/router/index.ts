@@ -101,6 +101,13 @@ const router = createRouter({
       name: 'password',
       component: () => import('@/pages/profile/Password.vue'),
       meta: { auth: true, hideBottomNav: true }
+    },
+    {
+      // 管理员邀请码管理
+      path: '/admin/invitation',
+      name: 'AdminInvitation',
+      component: () => import('@/pages/admin/Invitation.vue'),
+      meta: { auth: true, requiresAdmin: true, hideBottomNav: true }
     }
   ]
 })
@@ -114,6 +121,13 @@ router.beforeEach(async (to, _from, next) => {
   } else if (to.meta.guest && auth.isLoggedIn) {
     // 登录页不需要看到，直接去 /
     next('/')
+  } else if (to.meta.requiresAdmin) {
+    // 管理员权限校验
+    if (auth.user?.role !== 'admin') {
+      next('/home') // 非管理员跳转到主页
+    } else {
+      next()
+    }
   } else {
     next()
   }
