@@ -139,6 +139,8 @@ onMounted(() => {
           </select>
         </div>
 
+        <div class="form-group">
+          <label>备注</label>
           <textarea v-model="form.remark" class="form-control remark-textarea" placeholder="可选" rows="3"></textarea>
         </div>
 
