@@ -255,7 +255,7 @@ onMounted(() => {
           >
             <div class="recent-info">
               <div class="recent-merchant">{{ bill.merchant || '未识别商户' }}</div>
-              <div class="recent-meta">{{ formatDate(bill.CreatedAt) }}<span v-if="bill.category"> · {{ bill.category }}</span></div>
+              <div class="recent-meta">{{ formatDate(bill.transaction_date) }}<span v-if="bill.category"> · {{ bill.category }}</span></div>
             </div>
             <div class="recent-amount" :class="{ refund: bill.category === '退款' }">
               {{ bill.category === '退款' ? '' : '-' }}¥{{ bill.amount?.toFixed(2) }}

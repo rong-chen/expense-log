@@ -77,9 +77,9 @@ func (s *billService) GetTrendStats(userID uuid.UUID) ([]TrendStatResponse, erro
 
 	var results []TrendStatResponse
 	err := s.db.Model(&model.Bill{}).
-		Select("to_char(created_at, 'YYYY-MM') as month, sum(amount) as expense").
-		Where("user_id = ? AND created_at >= ? AND (category != '退款' OR category IS NULL)", userID, startOfMonth).
-		Group("to_char(created_at, 'YYYY-MM')").
+		Select("to_char(transaction_date, 'YYYY-MM') as month, sum(amount) as expense").
+		Where("user_id = ? AND transaction_date >= ? AND (category != '退款' OR category IS NULL)", userID, startOfMonth).
+		Group("to_char(transaction_date, 'YYYY-MM')").
 		Order("month asc").
 		Scan(&results).Error
 
@@ -128,7 +128,7 @@ func (s *billService) GetCategoryStats(userID uuid.UUID) ([]CategoryStatResponse
 
 	err := s.db.Model(&model.Bill{}).
 		Select("category as name, count(*) as value"). // 暂时以笔数占比为例，或者用 sum(amount)
-		Where("user_id = ? AND created_at >= ? AND category != '' AND category IS NOT NULL", userID, startOfMonth).
+		Where("user_id = ? AND transaction_date >= ? AND category != '' AND category IS NOT NULL", userID, startOfMonth).
 		Group("category").
 		Order("value desc").
 		Scan(&results).Error
@@ -161,20 +161,20 @@ func (s *billService) GetDashboardStats(userID uuid.UUID) (*DashboardStatRespons
 	// 这个月总支出（排除退款）
 	var monthExpense float64
 	s.db.Model(&model.Bill{}).
-		Where("user_id = ? AND created_at >= ? AND (category != '退款' OR category IS NULL)", userID, startOfMonth).
+		Where("user_id = ? AND transaction_date >= ? AND (category != '退款' OR category IS NULL)", userID, startOfMonth).
 		Select("COALESCE(sum(amount), 0)").Scan(&monthExpense)
 
 	// 本月账单数（排除退款）
 	var billCount int64
 	s.db.Model(&model.Bill{}).
-		Where("user_id = ? AND created_at >= ? AND (category != '退款' OR category IS NULL)", userID, startOfMonth).
+		Where("user_id = ? AND transaction_date >= ? AND (category != '退款' OR category IS NULL)", userID, startOfMonth).
 		Count(&billCount)
 
 	// 上月总支出（排除退款）
 	lastMonthStart := startOfMonth.AddDate(0, -1, 0)
 	var lastMonthExpense float64
 	s.db.Model(&model.Bill{}).
-		Where("user_id = ? AND created_at >= ? AND created_at < ? AND (category != '退款' OR category IS NULL)", userID, lastMonthStart, startOfMonth).
+		Where("user_id = ? AND transaction_date >= ? AND transaction_date < ? AND (category != '退款' OR category IS NULL)", userID, lastMonthStart, startOfMonth).
 		Select("COALESCE(sum(amount), 0)").Scan(&lastMonthExpense)
 
 	// 未处理邮件 (status = 0 或者 parsing_status)
@@ -222,13 +222,13 @@ func (s *billService) GetBillList(userID uuid.UUID, page, pageSize int, keyword,
 	}
 	if date != "" {
 		// 利用 to_char 兼容 YYYY-MM 或 YYYY-MM-DD 的前缀匹配
-		query = query.Where("to_char(created_at, 'YYYY-MM-DD') LIKE ?", date+"%")
+		query = query.Where("to_char(transaction_date, 'YYYY-MM-DD') LIKE ?", date+"%")
 	}
 
 	query.Count(&total)
 
 	offset := (page - 1) * pageSize
-	err := query.Order("created_at DESC").Offset(offset).Limit(pageSize).Find(&bills).Error
+	err := query.Order("transaction_date DESC").Offset(offset).Limit(pageSize).Find(&bills).Error
 	return bills, total, err
 }
 
@@ -240,11 +240,11 @@ func (s *billService) UpdateRemark(userID uuid.UUID, billID uuid.UUID, remark st
 
 func (s *billService) UpdateBill(userID uuid.UUID, billID uuid.UUID, dto UpdateBillDTO) error {
 	updates := map[string]interface{}{
-		"amount":     dto.Amount,
-		"merchant":   dto.Merchant,
-		"category":   dto.Category,
-		"remark":     dto.Remark,
-		"created_at": dto.CreatedAt,
+		"amount":           dto.Amount,
+		"merchant":         dto.Merchant,
+		"category":         dto.Category,
+		"remark":           dto.Remark,
+		"transaction_date": dto.CreatedAt,
 	}
 	return s.db.Model(&model.Bill{}).Where("id = ? AND user_id = ?", billID, userID).Updates(updates).Error
 }

@@ -145,7 +145,7 @@ function openEditPage(billID: string) {
         <div class="bill-info">
           <div class="bill-merchant text-truncate">{{ bill.merchant || '未识别商户' }}</div>
           <div class="bill-meta text-truncate">
-            <span class="meta-item">{{ formatDate(bill.CreatedAt) }}</span>
+            <span class="meta-item">{{ formatDate(bill.transaction_date) }}</span>
             <span class="meta-item" v-if="bill.category">· {{ bill.category }}</span>
           </div>
           <div class="bill-remark text-truncate">

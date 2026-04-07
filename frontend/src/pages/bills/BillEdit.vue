@@ -28,7 +28,7 @@ async function fetchBillDetail() {
     const res: any = await billApi.getBillDetail(billID)
     if (res.code === 0) {
       const bill = res.data
-      const d = new Date(bill.CreatedAt)
+      const d = new Date(bill.transaction_date)
       const pad = (n: number) => n.toString().padStart(2, '0')
       const localDatetime = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
       
