@@ -253,7 +253,8 @@ func (ctrl *billController) UploadImageReceipt(c *gin.Context) {
 			fmt.Printf("✅ 第 %d 张图最终解析出的结构体: %+v\n", index, analysis)
 
 			// 构建账单记录并存库
-			transDate, _ := time.Parse("2006-01-02 15:04:05", analysis.TransactionDate)
+			cst, _ := time.LoadLocation("Asia/Shanghai")
+			transDate, _ := time.ParseInLocation("2006-01-02 15:04:05", analysis.TransactionDate, cst)
 			if transDate.IsZero() {
 				transDate = time.Now()
 			}
@@ -436,9 +437,10 @@ func (ctrl *billController) UpdateBill(c *gin.Context) {
 		return
 	}
 
-	t, err := time.Parse("2006-01-02T15:04", req.CreatedAt)
+	cst, _ := time.LoadLocation("Asia/Shanghai")
+	t, err := time.ParseInLocation("2006-01-02T15:04", req.CreatedAt, cst)
 	if err != nil {
-		t, err = time.Parse("2006-01-02 15:04:05", req.CreatedAt)
+		t, err = time.ParseInLocation("2006-01-02 15:04:05", req.CreatedAt, cst)
 		if err != nil {
 			t = time.Now()
 		}
@@ -500,9 +502,10 @@ func (ctrl *billController) CreateBill(c *gin.Context) {
 		return
 	}
 
-	t, err := time.Parse("2006-01-02T15:04", req.CreatedAt)
+	cst, _ := time.LoadLocation("Asia/Shanghai")
+	t, err := time.ParseInLocation("2006-01-02T15:04", req.CreatedAt, cst)
 	if err != nil {
-		t, err = time.Parse("2006-01-02 15:04:05", req.CreatedAt)
+		t, err = time.ParseInLocation("2006-01-02 15:04:05", req.CreatedAt, cst)
 		if err != nil {
 			t = time.Now()
 		}
