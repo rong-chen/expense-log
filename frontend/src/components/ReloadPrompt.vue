@@ -10,6 +10,10 @@ const {
   onRegistered(r) {
     if (r) {
       console.log('SW Registered')
+      // 每 60 秒检查一次 Service Worker 更新
+      setInterval(() => {
+        r.update()
+      }, 60 * 1000)
     }
   },
   onRegisterError(error) {
