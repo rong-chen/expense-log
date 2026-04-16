@@ -70,10 +70,16 @@ func RunBackwardCompatibilityMigration(db *gorm.DB) {
 				UserID:   user.ID,
 				Role:     model.LedgerRoleOwner,
 			})
-			
-			// 将属于该用户但尚未绑定 Ledger 的旧账单更新为属于此个人账本
-			db.Model(&model.Bill{}).Where("user_id = ? AND ledger_id IS NULL", user.ID).Update("ledger_id", personalLedger.ID)
-			fmt.Printf("Migrated legacy bills for user %v to personal ledger %v\n", user.Email, personalLedger.ID)
+			fmt.Printf("Created default personal ledger for user %v\n", user.Email)
+		}
+
+		// 无论账本是刚才建的还是以前次品运行中建的，补刀：将所有属于该用户但尚未绑定 Ledger 的旧账单强制划入个人账本
+		var personalLedger model.Ledger
+		if err := db.Where("owner_id = ? AND type = ?", user.ID, model.LedgerTypePersonal).First(&personalLedger).Error; err == nil {
+			res := db.Model(&model.Bill{}).Where("user_id = ? AND (ledger_id IS NULL OR ledger_id = '00000000-0000-0000-0000-000000000000')", user.ID).Update("ledger_id", personalLedger.ID)
+			if res.RowsAffected > 0 {
+				fmt.Printf("Migrated %d legacy bills for user %v to personal ledger %v\n", res.RowsAffected, user.Email, personalLedger.ID)
+			}
 		}
 	}
 }
