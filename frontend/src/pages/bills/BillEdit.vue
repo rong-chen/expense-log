@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { billApi } from '@/api'
+import { billApi, tagApi } from '@/api'
 import { toast } from 'vue-sonner'
 import TopNavBar from '@/components/layout/TopNavBar.vue'
 
@@ -51,8 +51,42 @@ async function fetchBillDetail() {
   }
 }
 
+// 标签相关
+interface TagItem {
+  ID: string
+  name: string
+  color: string
+}
+const allTags = ref<TagItem[]>([])
+const selectedTagIDs = ref<string[]>([])
+
+async function fetchTags() {
+  try {
+    const [tagsRes, billTagsRes]: any = await Promise.all([
+      tagApi.list(),
+      tagApi.getBillTags(billID)
+    ])
+    if (tagsRes.code === 0) allTags.value = tagsRes.data || []
+    if (billTagsRes.code === 0) {
+      selectedTagIDs.value = (billTagsRes.data || []).map((t: any) => t.ID)
+    }
+  } catch (e) {
+    console.error('Failed to load tags:', e)
+  }
+}
+
+function toggleTag(tagID: string) {
+  const idx = selectedTagIDs.value.indexOf(tagID)
+  if (idx >= 0) {
+    selectedTagIDs.value.splice(idx, 1)
+  } else {
+    selectedTagIDs.value.push(tagID)
+  }
+}
+
 onMounted(() => {
   fetchBillDetail()
+  fetchTags()
 })
 
 function onDateChange() {
@@ -78,6 +112,9 @@ async function confirmSave() {
       remark: editForm.value.remark.trim(),
       created_at: editForm.value.created_at
     })
+    
+    // 同时保存标签关联
+    await tagApi.setBillTags(billID, selectedTagIDs.value)
     
     if (res.code === 0) {
 
@@ -149,6 +186,19 @@ async function confirmDelete() {
         <div class="form-group">
           <label>记账时间</label>
           <input type="datetime-local" v-model="editForm.created_at" @change="onDateChange" class="form-control" />
+        </div>
+
+        <div class="form-group">
+          <label>标签</label>
+          <div class="tag-selector" v-if="allTags.length > 0">
+            <button
+              v-for="tag in allTags" :key="tag.ID"
+              :class="['tag-chip', { active: selectedTagIDs.includes(tag.ID) }]"
+              :style="selectedTagIDs.includes(tag.ID) ? { background: tag.color, borderColor: tag.color, color: '#fff' } : { borderColor: tag.color + '40', color: tag.color }"
+              @click="toggleTag(tag.ID)"
+            >{{ tag.name }}</button>
+          </div>
+          <div v-else class="tag-empty-hint">暂无标签，可在「我的 → 标签管理」中创建</div>
         </div>
 
         <div class="form-group">
@@ -270,6 +320,33 @@ input[type="datetime-local"]::-webkit-datetime-edit-fields-wrapper {
 
 .remark-textarea {
   resize: none;
+}
+
+.tag-selector {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.tag-chip {
+  padding: 6px 14px;
+  border-radius: 20px;
+  border: 1.5px solid;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: transparent;
+}
+.tag-chip.active {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+.tag-chip:active {
+  transform: scale(0.95);
+}
+.tag-empty-hint {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  opacity: 0.7;
 }
 
 .bottom-actions {

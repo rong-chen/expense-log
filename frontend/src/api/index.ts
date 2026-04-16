@@ -120,3 +120,11 @@ export const billApi = {
   deleteBill: (id: string) => api.delete(`/bill/${id}`),
   createBill: (data: { amount: number; merchant: string; category: string; remark: string; created_at: string }) => api.post('/bill/manual', data),
 }
+
+export const tagApi = {
+  list: () => api.get('/tag/list'),
+  create: (data: { name: string; color: string }) => api.post('/tag/create', data),
+  remove: (id: string) => api.delete(`/tag/${id}`),
+  setBillTags: (billID: string, tagIDs: string[]) => api.post(`/tag/bill/${billID}`, { tag_ids: tagIDs }),
+  getBillTags: (billID: string) => api.get(`/tag/bill/${billID}`),
+}

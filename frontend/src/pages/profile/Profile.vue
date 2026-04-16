@@ -2,7 +2,7 @@
 import { ref, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { useRouter } from 'vue-router'
-import { Lock, LogOut, ChevronRight, Settings, CalendarClock, ShieldCheck } from 'lucide-vue-next'
+import { Lock, LogOut, ChevronRight, Settings, CalendarClock, ShieldCheck, Tag } from 'lucide-vue-next'
 
 const auth = useAuthStore()
 const router = useRouter()
@@ -71,6 +71,16 @@ onMounted(() => {
         </div>
         <div class="menu-content">
           <span>周期账单</span>
+          <ChevronRight :size="18" class="chevron" />
+        </div>
+      </div>
+
+      <div class="menu-item" @click="router.push('/tags')">
+        <div class="menu-icon" style="background: rgba(52, 152, 219, 0.12); color: #3498db">
+          <Tag :size="20" />
+        </div>
+        <div class="menu-content">
+          <span>标签管理</span>
           <ChevronRight :size="18" class="chevron" />
         </div>
       </div>

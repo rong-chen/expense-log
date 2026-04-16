@@ -27,6 +27,8 @@ func main() {
 		&model.Ukey{},
 		&model.RecurringBill{},
 		&model.InvitationCode{},
+		&model.Tag{},
+		&model.BillTag{},
 	); err != nil {
 		panic(fmt.Errorf("表结构迁移失败: %w", err))
 	}

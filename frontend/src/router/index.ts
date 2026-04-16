@@ -122,6 +122,13 @@ const router = createRouter({
       name: 'AdminUsers',
       component: () => import('@/pages/admin/UserManagement.vue'),
       meta: { auth: true, requiresAdmin: true, hideBottomNav: true }
+    },
+    {
+      // 标签管理
+      path: '/tags',
+      name: 'TagManager',
+      component: () => import('@/pages/profile/TagManager.vue'),
+      meta: { auth: true, hideBottomNav: true }
     }
   ]
 })

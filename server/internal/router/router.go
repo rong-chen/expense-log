@@ -76,6 +76,9 @@ func Start(db *gorm.DB, rdb *redis.Client, cfg *model.Config) {
 	// 注册账单路由（注入 LLM Provider）
 	item.NewBillRouter(v1, db, rdb, cfg.JWT, llmProvider, cfg.LLM)
 
+	// 注册标签路由
+	item.NewTagRouter(v1, db, rdb, cfg.JWT)
+
 	// 注册周期账单路由
 	recurringServ := item.NewRecurringBillRouter(v1, db, rdb, cfg.JWT)
 
