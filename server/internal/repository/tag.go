@@ -76,13 +76,14 @@ func (r *tagRepository) SetBillTags(billID uuid.UUID, tagIDs []uuid.UUID) error 
 	return nil
 }
 
-// GetBillTags 获取账单关联的所有标签
+// GetBillTags 获取账单关联的所有标签（原生 SQL 避免 GORM JOIN 问题）
 func (r *tagRepository) GetBillTags(billID uuid.UUID) ([]model.Tag, error) {
 	var tags []model.Tag
-	err := r.db.
-		Joins("JOIN bill_tags ON bill_tags.tag_id = tags.id").
-		Where("bill_tags.bill_id = ?", billID).
-		Find(&tags).Error
+	err := r.db.Raw(`
+		SELECT t.* FROM tags t
+		INNER JOIN bill_tags bt ON bt.tag_id = t.id
+		WHERE bt.bill_id = ? AND t.deleted_at IS NULL
+	`, billID).Scan(&tags).Error
 	return tags, err
 }
 
