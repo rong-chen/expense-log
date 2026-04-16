@@ -93,9 +93,10 @@ func (s *billService) GetTrendStats(userID, ledgerID uuid.UUID) ([]TrendStatResp
 	startOfMonth := time.Date(sixMonthsAgo.Year(), sixMonthsAgo.Month(), 1, 0, 0, 0, 0, now.Location())
 
 	var results []TrendStatResponse
-	err := s.db.Model(&model.Bill{}).
+	q := s.db.Model(&model.Bill{}).Where("transaction_date >= ? AND (category != '退款' OR category IS NULL)", startOfMonth)
+	
+	err := s.buildLedgerScope(q, userID, ledgerID).
 		Select("to_char(transaction_date, 'YYYY-MM') as month, sum(amount) as expense").
-		Where("ledger_id = ? AND ledger_id IN (SELECT ledger_id FROM ledger_members WHERE user_id = ?) AND transaction_date >= ? AND (category != '退款' OR category IS NULL)", ledgerID, userID, startOfMonth).
 		Group("to_char(transaction_date, 'YYYY-MM')").
 		Order("month asc").
 		Scan(&results).Error
@@ -143,9 +144,9 @@ func (s *billService) GetCategoryStats(userID, ledgerID uuid.UUID) ([]CategorySt
 	now := time.Now()
 	startOfMonth := time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, now.Location())
 
-	err := s.db.Model(&model.Bill{}).
+	q := s.db.Model(&model.Bill{}).Where("transaction_date >= ? AND category != '' AND category IS NOT NULL", startOfMonth)
+	err := s.buildLedgerScope(q, userID, ledgerID).
 		Select("category as name, count(*) as value"). // 暂时以笔数占比为例，或者用 sum(amount)
-		Where("ledger_id = ? AND ledger_id IN (SELECT ledger_id FROM ledger_members WHERE user_id = ?) AND transaction_date >= ? AND category != '' AND category IS NOT NULL", ledgerID, userID, startOfMonth).
 		Group("category").
 		Order("value desc").
 		Scan(&results).Error
@@ -177,22 +178,19 @@ func (s *billService) GetDashboardStats(userID, ledgerID uuid.UUID) (*DashboardS
 
 	// 这个月总支出（排除退款）
 	var monthExpense float64
-	s.db.Model(&model.Bill{}).
-		Where("ledger_id = ? AND ledger_id IN (SELECT ledger_id FROM ledger_members WHERE user_id = ?) AND transaction_date >= ? AND (category != '退款' OR category IS NULL)", ledgerID, userID, startOfMonth).
-		Select("COALESCE(sum(amount), 0)").Scan(&monthExpense)
+	q1 := s.db.Model(&model.Bill{}).Where("transaction_date >= ? AND (category != '退款' OR category IS NULL)", startOfMonth)
+	s.buildLedgerScope(q1, userID, ledgerID).Select("COALESCE(sum(amount), 0)").Scan(&monthExpense)
 
 	// 本月账单数（排除退款）
 	var billCount int64
-	s.db.Model(&model.Bill{}).
-		Where("ledger_id = ? AND ledger_id IN (SELECT ledger_id FROM ledger_members WHERE user_id = ?) AND transaction_date >= ? AND (category != '退款' OR category IS NULL)", ledgerID, userID, startOfMonth).
-		Count(&billCount)
+	q2 := s.db.Model(&model.Bill{}).Where("transaction_date >= ? AND (category != '退款' OR category IS NULL)", startOfMonth)
+	s.buildLedgerScope(q2, userID, ledgerID).Count(&billCount)
 
 	// 上月总支出（排除退款）
 	lastMonthStart := startOfMonth.AddDate(0, -1, 0)
 	var lastMonthExpense float64
-	s.db.Model(&model.Bill{}).
-		Where("ledger_id = ? AND ledger_id IN (SELECT ledger_id FROM ledger_members WHERE user_id = ?) AND transaction_date >= ? AND transaction_date < ? AND (category != '退款' OR category IS NULL)", ledgerID, userID, lastMonthStart, startOfMonth).
-		Select("COALESCE(sum(amount), 0)").Scan(&lastMonthExpense)
+	q3 := s.db.Model(&model.Bill{}).Where("transaction_date >= ? AND transaction_date < ? AND (category != '退款' OR category IS NULL)", lastMonthStart, startOfMonth)
+	s.buildLedgerScope(q3, userID, ledgerID).Select("COALESCE(sum(amount), 0)").Scan(&lastMonthExpense)
 
 	// 未处理邮件 (status = 0 或者 parsing_status)
 	var pendingEmail int64
@@ -236,7 +234,8 @@ func (s *billService) GetBillList(userID, ledgerID uuid.UUID, page, pageSize int
 	var bills []model.Bill
 	var total int64
 
-	query := s.db.Model(&model.Bill{}).Where("ledger_id = ? AND ledger_id IN (SELECT ledger_id FROM ledger_members WHERE user_id = ?)", ledgerID, userID)
+	query := s.db.Model(&model.Bill{})
+	query = s.buildLedgerScope(query, userID, ledgerID)
 
 	if keyword != "" {
 		query = query.Where("merchant LIKE ? OR remark LIKE ?", "%"+keyword+"%", "%"+keyword+"%")
