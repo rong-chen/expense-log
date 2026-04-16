@@ -63,6 +63,11 @@ type DashboardStatResponse struct {
 // - 如果查的是个人账本，则允许提取因为历史兼容性原因落下的 ledger_id IS NULL 的个人旧账单
 // - 如果查的是共享账本，则执行严格的 ledger_id 隔离
 func (s *billService) buildLedgerScope(query *gorm.DB, userID, ledgerID uuid.UUID) *gorm.DB {
+	// 如果没有传入或匹配到任何明确的账本 (Nil)
+	if ledgerID == uuid.Nil {
+		return query.Where("ledger_id IS NULL AND user_id = ?", userID)
+	}
+
 	var ledgerType model.LedgerType
 	s.db.Model(&model.Ledger{}).Select("type").Where("id = ?", ledgerID).Scan(&ledgerType)
 

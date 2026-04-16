@@ -23,11 +23,19 @@ export const useLedgerStore = defineStore('ledger', {
         const res: any = await ledgerApi.list()
         if (res.code === 0 && res.data) {
           this.ledgers = res.data
-          // 如果当前没有选定，或者是无效的账本，选中列表第一个（通常是个人默认账本）
+          // 如果当前没有选定，或者是无效的账本
           if (!this.currentLedgerId || !this.ledgers.find(l => l.ID === this.currentLedgerId)) {
             if (this.ledgers.length > 0) {
-              this.setCurrentLedger(this.ledgers[0].ID)
+              this.setCurrentLedger(this.ledgers[0].ID) // 默认切到第一个
+            } else {
+              this.setCurrentLedger('') // 清空无效的暂存 ID，完全退化为无账本模式
             }
+          }
+        } else {
+          // 接口都没返回数据说明没有任何账本
+          this.ledgers = []
+          if (this.currentLedgerId) {
+            this.setCurrentLedger('')
           }
         }
       } catch (e) {
