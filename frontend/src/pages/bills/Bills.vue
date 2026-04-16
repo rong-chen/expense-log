@@ -102,7 +102,7 @@ onMounted(() => {
 })
 
 function openEditPage(bill: any) {
-  if (bill.user_id !== auth.user?.uid) {
+  if (bill.user_id !== auth.user?.id) {
     toast.error('这是他人记录的账单，您无权修改')
     return
   }
@@ -154,7 +154,7 @@ function openEditPage(bill: any) {
           <div class="bill-meta text-truncate">
             <span class="meta-item">{{ formatDate(bill.transaction_date) }}</span>
             <span class="meta-item" v-if="bill.category">· {{ bill.category }}</span>
-            <span class="meta-item" v-if="bill.user_id !== auth.user?.uid" style="color: var(--primary);">· 他人</span>
+            <span class="meta-item" v-if="bill.user_id !== auth.user?.id" style="color: var(--primary);">· 他人</span>
           </div>
           <div class="bill-remark text-truncate">
             {{ bill.remark || '（暂无备注）' }}

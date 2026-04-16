@@ -4,6 +4,7 @@ import { authApi } from '@/api'
 import router from '@/router'
 
 interface UserInfo {
+  id: string
   uid: string
   phone: string
   nickname: string

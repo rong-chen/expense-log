@@ -182,6 +182,7 @@ func (u *userService) GetUserInfo(userID uuid.UUID) (*model.UserInfoResponse, er
 	}
 
 	return &model.UserInfoResponse{
+		ID:        user.ID,
 		UID:       user.UID,
 		Phone:     user.Phone,
 		Nickname:  user.Nickname,

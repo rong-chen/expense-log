@@ -68,11 +68,12 @@ type TokenResponse struct {
 
 // UserInfoResponse 用户信息响应
 type UserInfoResponse struct {
-	UID       string `json:"uid"`
-	Phone     string `json:"phone"`
-	Nickname  string `json:"nickname"`
-	Avatar    string `json:"avatar"`
-	Email     string `json:"email"`
-	LastLogin int64  `json:"last_login"`
-	Role      string `json:"role"`
+	ID        uuid.UUID `json:"id"`
+	UID       string    `json:"uid"`
+	Phone     string    `json:"phone"`
+	Nickname  string    `json:"nickname"`
+	Avatar    string    `json:"avatar"`
+	Email     string    `json:"email"`
+	LastLogin int64     `json:"last_login"`
+	Role      string    `json:"role"`
 }

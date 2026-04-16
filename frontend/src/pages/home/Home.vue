@@ -179,7 +179,7 @@ async function copyInviteCode(code: string) {
 }
 
 function openEditPage(bill: any) {
-  if (bill.user_id !== auth.user?.uid) {
+  if (bill.user_id !== auth.user?.id) {
     toast.error('这是他人记录的账单，您无权修改')
     return
   }
@@ -327,7 +327,7 @@ function openEditPage(bill: any) {
               <div class="recent-merchant">{{ bill.merchant || '未识别商户' }}</div>
               <div class="recent-meta">
                 {{ formatDate(bill.transaction_date) }}<span v-if="bill.category"> · {{ bill.category }}</span>
-                <span v-if="bill.user_id !== auth.user?.uid" style="color: var(--primary);"> · 他人</span>
+                <span v-if="bill.user_id !== auth.user?.id" style="color: var(--primary);"> · 他人</span>
               </div>
             </div>
             <div class="recent-amount" :class="{ refund: bill.category === '退款' }">

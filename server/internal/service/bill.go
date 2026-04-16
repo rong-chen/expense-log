@@ -214,17 +214,28 @@ func (s *billService) GetDashboardStats(userID, ledgerID uuid.UUID) (*DashboardS
 
 func (s *billService) GetBillDetail(userID, billID uuid.UUID) (*model.Bill, error) {
 	var bill model.Bill
-	// 先校验访问账本的权限
-	var hasAccess int64
-	s.db.Model(&model.LedgerMember{}).Where("ledger_id = (SELECT ledger_id FROM bills WHERE id = ?) AND user_id = ?", billID, userID).Count(&hasAccess)
-	if hasAccess == 0 {
-		return nil, fmt.Errorf("无权限访问此账单")
-	}
-
 	err := s.db.Preload("Tags").Where("id = ?", billID).First(&bill).Error
 	if err != nil {
 		return nil, err
 	}
+
+	// 权限校验逻辑
+	if bill.LedgerID == nil {
+		// 无账本的老数据，校验是否为本人记录
+		if bill.UserID != userID {
+			return nil, fmt.Errorf("无权限访问此账单")
+		}
+	} else {
+		// 有账本的数据，校验是否为该账本成员
+		var count int64
+		s.db.Model(&model.LedgerMember{}).
+			Where("ledger_id = ? AND user_id = ?", *bill.LedgerID, userID).
+			Count(&count)
+		if count == 0 {
+			return nil, fmt.Errorf("无权限访问此共享账本详情")
+		}
+	}
+
 	return &bill, nil
 }
 

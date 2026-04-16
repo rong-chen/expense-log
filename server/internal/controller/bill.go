@@ -80,10 +80,8 @@ func (ctrl *billController) GetTrendStats(c *gin.Context) {
 	}
 
 	ledgerID := ctrl.getLedgerID(c, userID)
-	if ledgerID == uuid.Nil {
-		response.Fail(c, http.StatusInternalServerError, 50000, "无法确定操作账本")
-		return
-	}
+	// 如果没有任何账本 (offline/legacy mode)，ledgerID 为 uuid.Nil，Service 层 buildLedgerScope 会处理它为 NULL 匹配
+
 
 	res, err := ctrl.serv.GetTrendStats(userID, ledgerID)
 	if err != nil {
@@ -102,10 +100,7 @@ func (ctrl *billController) GetCategoryStats(c *gin.Context) {
 	}
 
 	ledgerID := ctrl.getLedgerID(c, userID)
-	if ledgerID == uuid.Nil {
-		response.Fail(c, http.StatusInternalServerError, 50000, "无法确定操作账本")
-		return
-	}
+
 
 	res, err := ctrl.serv.GetCategoryStats(userID, ledgerID)
 	if err != nil {
@@ -124,10 +119,7 @@ func (ctrl *billController) GetDashboardStats(c *gin.Context) {
 	}
 
 	ledgerID := ctrl.getLedgerID(c, userID)
-	if ledgerID == uuid.Nil {
-		response.Fail(c, http.StatusInternalServerError, 50000, "无法确定操作账本")
-		return
-	}
+
 
 	res, err := ctrl.serv.GetDashboardStats(userID, ledgerID)
 	if err != nil {
@@ -561,14 +553,16 @@ func (ctrl *billController) CreateBill(c *gin.Context) {
 	}
 
 	ledgerID := ctrl.getLedgerID(c, userID)
-	if ledgerID == uuid.Nil {
-		response.Fail(c, http.StatusInternalServerError, 50000, "无法确定要归属的账本")
-		return
+
+	var ledgerIDPtr *uuid.UUID
+	if ledgerID != uuid.Nil {
+		ledgerIDPtr = &ledgerID
 	}
+
 
 	bill := &model.Bill{
 		UserID:          userID,
-		LedgerID:        &ledgerID,
+		LedgerID:        ledgerIDPtr,
 		Amount:          req.Amount,
 		Merchant:        html.EscapeString(req.Merchant),
 		Category:        html.EscapeString(req.Category),
