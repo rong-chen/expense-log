@@ -61,17 +61,21 @@ const allTags = ref<TagItem[]>([])
 const selectedTagIDs = ref<string[]>([])
 
 async function fetchTags() {
+  // 独立加载：避免其中一个失败导致另一个也不显示
   try {
-    const [tagsRes, billTagsRes]: any = await Promise.all([
-      tagApi.list(),
-      tagApi.getBillTags(billID)
-    ])
+    const tagsRes: any = await tagApi.list()
     if (tagsRes.code === 0) allTags.value = tagsRes.data || []
+  } catch (e) {
+    console.error('Failed to load user tags:', e)
+  }
+
+  try {
+    const billTagsRes: any = await tagApi.getBillTags(billID)
     if (billTagsRes.code === 0) {
       selectedTagIDs.value = (billTagsRes.data || []).map((t: any) => t.ID)
     }
   } catch (e) {
-    console.error('Failed to load tags:', e)
+    console.error('Failed to load bill tags:', e)
   }
 }
 

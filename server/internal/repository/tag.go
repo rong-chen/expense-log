@@ -48,8 +48,8 @@ func (r *tagRepository) GetByID(id uuid.UUID) (*model.Tag, error) {
 }
 
 func (r *tagRepository) Delete(id uuid.UUID, userID uuid.UUID) error {
-	// 先删除关联关系
-	r.db.Where("tag_id = ?", id).Delete(&model.BillTag{})
+	// 先删除关联关系（使用原生 SQL 避免 GORM 复合主键问题）
+	r.db.Exec("DELETE FROM bill_tags WHERE tag_id = ?", id)
 	// 再删除标签
 	return r.db.Where("id = ? AND user_id = ?", id, userID).Delete(&model.Tag{}).Error
 }
@@ -62,8 +62,8 @@ func (r *tagRepository) ExistsByName(userID uuid.UUID, name string) (bool, error
 
 // SetBillTags 设置账单的标签（先清后写）
 func (r *tagRepository) SetBillTags(billID uuid.UUID, tagIDs []uuid.UUID) error {
-	// 删除旧的关联
-	if err := r.db.Where("bill_id = ?", billID).Delete(&model.BillTag{}).Error; err != nil {
+	// 删除旧的关联（使用原生 SQL 避免 GORM 复合主键问题）
+	if err := r.db.Exec("DELETE FROM bill_tags WHERE bill_id = ?", billID).Error; err != nil {
 		return err
 	}
 	// 批量插入新关联
