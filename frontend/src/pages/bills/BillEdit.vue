@@ -71,11 +71,20 @@ async function fetchTags() {
 
   try {
     const billTagsRes: any = await tagApi.getBillTags(billID)
+    console.log('[Tag Load] getBillTags response:', JSON.stringify(billTagsRes))
     if (billTagsRes.code === 0) {
-      selectedTagIDs.value = (billTagsRes.data || []).map((t: any) => t.ID)
+      const loadedTags = billTagsRes.data || []
+      selectedTagIDs.value = loadedTags.map((t: any) => t.ID)
+      // 临时调试: 显示加载结果
+      if (loadedTags.length > 0) {
+        toast.info(`已加载 ${loadedTags.length} 个标签关联`)
+      }
+    } else {
+      toast.error(`标签加载异常: code=${billTagsRes.code}`)
     }
-  } catch (e) {
+  } catch (e: any) {
     console.error('Failed to load bill tags:', e)
+    toast.error(`标签加载失败: ${e?.msg || e?.message || '未知'}`)
   }
 }
 
@@ -125,18 +134,24 @@ async function confirmSave() {
     // 保存标签关联（独立处理，不影响账单保存结果）
     if (selectedTagIDs.value.length > 0 || allTags.value.length > 0) {
       try {
+        toast.info(`正在保存 ${selectedTagIDs.value.length} 个标签...`)
         const tagRes: any = await tagApi.setBillTags(billID, selectedTagIDs.value)
         console.log('[Tag Save] billID:', billID, 'tagIDs:', selectedTagIDs.value, 'result:', tagRes)
         if (tagRes?.code !== 0) {
           toast.error('标签保存失败: ' + (tagRes?.msg || '未知错误'))
+          return  // 不返回，让用户看到错误
+        } else {
+          toast.success(`✅ ${selectedTagIDs.value.length} 个标签已保存`)
         }
-      } catch (tagErr) {
+      } catch (tagErr: any) {
         console.error('[Tag Save Error]', tagErr)
-        toast.error('标签保存失败')
+        toast.error('标签保存失败: ' + (tagErr?.msg || tagErr?.message || '网络错误'))
+        return  // 不返回，让用户看到错误
       }
     }
 
-    router.back()
+    // 延迟返回，让用户看到调试 toast（调试完成后可删除 setTimeout）
+    setTimeout(() => router.back(), 1500)
   } catch (err) {
     console.error('[Bill Save Error]', err)
     toast.error('保存请求失败')
