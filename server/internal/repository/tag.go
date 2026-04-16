@@ -2,6 +2,7 @@ package repository
 
 import (
 	"expense-log/internal/model"
+	"fmt"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -60,19 +61,17 @@ func (r *tagRepository) ExistsByName(userID uuid.UUID, name string) (bool, error
 	return count > 0, err
 }
 
-// SetBillTags 设置账单的标签（先清后写）
+// SetBillTags 设置账单的标签（先清后写，全部使用原生 SQL）
 func (r *tagRepository) SetBillTags(billID uuid.UUID, tagIDs []uuid.UUID) error {
-	// 删除旧的关联（使用原生 SQL 避免 GORM 复合主键问题）
+	// 删除旧的关联
 	if err := r.db.Exec("DELETE FROM bill_tags WHERE bill_id = ?", billID).Error; err != nil {
-		return err
+		return fmt.Errorf("delete old bill_tags: %w", err)
 	}
-	// 批量插入新关联
-	if len(tagIDs) > 0 {
-		var billTags []model.BillTag
-		for _, tid := range tagIDs {
-			billTags = append(billTags, model.BillTag{BillID: billID, TagID: tid})
+	// 逐条插入新关联（原生 SQL 避免 GORM 复合主键问题）
+	for _, tid := range tagIDs {
+		if err := r.db.Exec("INSERT INTO bill_tags (bill_id, tag_id) VALUES (?, ?)", billID, tid).Error; err != nil {
+			return fmt.Errorf("insert bill_tag (bill=%s, tag=%s): %w", billID, tid, err)
 		}
-		return r.db.Create(&billTags).Error
 	}
 	return nil
 }
