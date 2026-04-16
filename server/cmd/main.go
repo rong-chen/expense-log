@@ -20,6 +20,9 @@ func main() {
 	db := database.InitPostgres(conf.Database.Postgres)
 
 	// 在执行自动迁移前，防范由于旧数据手动/软硬删除引发的多对多（bill_tags）孤儿外键约束冲突
+	// 强行纠正 bill_tags 历史遗留的数据类型不匹配问题 (varchar -> uuid) 和清理孤儿数据
+	db.Exec("ALTER TABLE bill_tags ALTER COLUMN bill_id TYPE uuid USING bill_id::uuid")
+	db.Exec("ALTER TABLE bill_tags ALTER COLUMN tag_id TYPE uuid USING tag_id::uuid")
 	db.Exec("DELETE FROM bill_tags WHERE bill_id NOT IN (SELECT id FROM bills)")
 	db.Exec("DELETE FROM bill_tags WHERE tag_id NOT IN (SELECT id FROM tags)")
 
