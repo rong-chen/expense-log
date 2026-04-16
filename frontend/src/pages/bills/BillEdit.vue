@@ -117,16 +117,28 @@ async function confirmSave() {
       created_at: editForm.value.created_at
     })
     
-    // 同时保存标签关联
-    await tagApi.setBillTags(billID, selectedTagIDs.value)
-    
-    if (res.code === 0) {
-
-      router.back()
-    } else {
+    if (res.code !== 0) {
       toast.error(res.msg || '保存失败')
+      return
     }
+
+    // 保存标签关联（独立处理，不影响账单保存结果）
+    if (selectedTagIDs.value.length > 0 || allTags.value.length > 0) {
+      try {
+        const tagRes: any = await tagApi.setBillTags(billID, selectedTagIDs.value)
+        console.log('[Tag Save] billID:', billID, 'tagIDs:', selectedTagIDs.value, 'result:', tagRes)
+        if (tagRes?.code !== 0) {
+          toast.error('标签保存失败: ' + (tagRes?.msg || '未知错误'))
+        }
+      } catch (tagErr) {
+        console.error('[Tag Save Error]', tagErr)
+        toast.error('标签保存失败')
+      }
+    }
+
+    router.back()
   } catch (err) {
+    console.error('[Bill Save Error]', err)
     toast.error('保存请求失败')
   } finally {
     saving.value = false

@@ -4,6 +4,7 @@ import (
 	"expense-log/internal/model"
 	"expense-log/internal/repository"
 	"expense-log/pkg/response"
+	"fmt"
 	"html"
 	"net/http"
 
@@ -156,16 +157,21 @@ func (ctrl *tagController) SetBillTags(c *gin.Context) {
 	for _, idStr := range req.TagIDs {
 		id, err := uuid.Parse(idStr)
 		if err != nil {
+			fmt.Printf("[SetBillTags] 跳过无效 tagID: %s, err: %v\n", idStr, err)
 			continue
 		}
 		tagIDs = append(tagIDs, id)
 	}
 
+	fmt.Printf("[SetBillTags] billID=%s, 收到 %d 个 tagID, 解析成功 %d 个\n", billID, len(req.TagIDs), len(tagIDs))
+
 	if err := ctrl.repo.SetBillTags(billID, tagIDs); err != nil {
+		fmt.Printf("[SetBillTags] 保存失败: %v\n", err)
 		response.Fail(c, http.StatusInternalServerError, 50000, "设置标签失败")
 		return
 	}
 
+	fmt.Printf("[SetBillTags] ✅ 保存成功\n")
 	response.Success(c, nil)
 }
 
