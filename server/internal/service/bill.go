@@ -59,6 +59,18 @@ type DashboardStatResponse struct {
 	PendingEmail     int64   `json:"pending_email"`
 }
 
+// buildLedgerScope 智能应用账本级数据隔离
+// - 如果查的是个人账本，则允许提取因为历史兼容性原因落下的 ledger_id IS NULL 的个人旧账单
+// - 如果查的是共享账本，则执行严格的 ledger_id 隔离
+func (s *billService) buildLedgerScope(query *gorm.DB, userID, ledgerID uuid.UUID) *gorm.DB {
+	var ledgerType model.LedgerType
+	s.db.Model(&model.Ledger{}).Select("type").Where("id = ?", ledgerID).Scan(&ledgerType)
+
+	if ledgerType == model.LedgerTypePersonal {
+		return query.Where("(ledger_id = ? OR (ledger_id IS NULL AND user_id = ?))", ledgerID, userID)
+	}
+	return query.Where("ledger_id = ? AND ledger_id IN (SELECT ledger_id FROM ledger_members WHERE user_id = ?)", ledgerID, userID)
+}
 func (s *billService) GetTrendStats(userID, ledgerID uuid.UUID) ([]TrendStatResponse, error) {
 	ctx := context.Background()
 	cacheKey := fmt.Sprintf("ledger:%s:stats:trend", ledgerID.String())
