@@ -19,6 +19,10 @@ func main() {
 	conf := configs.InitConfigs(*configPtr)
 	db := database.InitPostgres(conf.Database.Postgres)
 
+	// 在执行自动迁移前，防范由于旧数据手动/软硬删除引发的多对多（bill_tags）孤儿外键约束冲突
+	db.Exec("DELETE FROM bill_tags WHERE bill_id NOT IN (SELECT id FROM bills)")
+	db.Exec("DELETE FROM bill_tags WHERE tag_id NOT IN (SELECT id FROM tags)")
+
 	// AutoMigrate 自动同步数据表结构
 	if err := db.AutoMigrate(
 		&model.User{},
