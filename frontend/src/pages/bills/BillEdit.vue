@@ -39,6 +39,11 @@ async function fetchBillDetail() {
         remark: bill.remark || '',
         created_at: localDatetime
       }
+      
+      // 直接从账单对象中提取聚合的标签（后端已修复，直接支持）
+      if (bill.tags && Array.isArray(bill.tags)) {
+        selectedTagIDs.value = bill.tags.map((t: any) => t.ID)
+      }
     } else {
       toast.error('获取账单失败')
       router.back()
@@ -61,30 +66,11 @@ const allTags = ref<TagItem[]>([])
 const selectedTagIDs = ref<string[]>([])
 
 async function fetchTags() {
-  // 独立加载：避免其中一个失败导致另一个也不显示
   try {
     const tagsRes: any = await tagApi.list()
     if (tagsRes.code === 0) allTags.value = tagsRes.data || []
   } catch (e) {
     console.error('Failed to load user tags:', e)
-  }
-
-  try {
-    const billTagsRes: any = await tagApi.getBillTags(billID)
-    console.log('[Tag Load] getBillTags response:', JSON.stringify(billTagsRes))
-    if (billTagsRes.code === 0) {
-      const loadedTags = billTagsRes.data || []
-      selectedTagIDs.value = loadedTags.map((t: any) => t.ID)
-      // 临时调试: 显示加载结果
-      if (loadedTags.length > 0) {
-        toast.info(`已加载 ${loadedTags.length} 个标签关联`)
-      }
-    } else {
-      toast.error(`标签加载异常: code=${billTagsRes.code}`)
-    }
-  } catch (e: any) {
-    console.error('Failed to load bill tags:', e)
-    toast.error(`标签加载失败: ${e?.msg || e?.message || '未知'}`)
   }
 }
 
@@ -134,24 +120,17 @@ async function confirmSave() {
     // 保存标签关联（独立处理，不影响账单保存结果）
     if (selectedTagIDs.value.length > 0 || allTags.value.length > 0) {
       try {
-        toast.info(`正在保存 ${selectedTagIDs.value.length} 个标签...`)
         const tagRes: any = await tagApi.setBillTags(billID, selectedTagIDs.value)
-        console.log('[Tag Save] billID:', billID, 'tagIDs:', selectedTagIDs.value, 'result:', tagRes)
         if (tagRes?.code !== 0) {
-          toast.error('标签保存失败: ' + (tagRes?.msg || '未知错误'))
-          return  // 不返回，让用户看到错误
-        } else {
-          toast.success(`✅ ${selectedTagIDs.value.length} 个标签已保存`)
+          toast.error('部分标签保存失败')
         }
       } catch (tagErr: any) {
-        console.error('[Tag Save Error]', tagErr)
-        toast.error('标签保存失败: ' + (tagErr?.msg || tagErr?.message || '网络错误'))
-        return  // 不返回，让用户看到错误
+        toast.error('网络错误，标签未保存')
       }
     }
 
-    // 延迟返回，让用户看到调试 toast（调试完成后可删除 setTimeout）
-    setTimeout(() => router.back(), 1500)
+    toast.success('保存成功')
+    router.back()
   } catch (err) {
     console.error('[Bill Save Error]', err)
     toast.error('保存请求失败')

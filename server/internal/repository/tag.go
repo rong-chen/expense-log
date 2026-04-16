@@ -1,8 +1,8 @@
 package repository
 
 import (
+	"expense-log/global"
 	"expense-log/internal/model"
-	"fmt"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -61,29 +61,23 @@ func (r *tagRepository) ExistsByName(userID uuid.UUID, name string) (bool, error
 	return count > 0, err
 }
 
-// SetBillTags 设置账单的标签（先清后写，全部使用原生 SQL）
+// SetBillTags 设置账单的标签（使用 GORM 原生关联重写）
 func (r *tagRepository) SetBillTags(billID uuid.UUID, tagIDs []uuid.UUID) error {
-	// 删除旧的关联
-	if err := r.db.Exec("DELETE FROM bill_tags WHERE bill_id = CAST(? AS uuid)", billID.String()).Error; err != nil {
-		return fmt.Errorf("delete old bill_tags: %w", err)
+	bill := model.Bill{Model: global.Model{ID: billID}}
+	
+	var tags []model.Tag
+	for _, id := range tagIDs {
+		tags = append(tags, model.Tag{Model: global.Model{ID: id}})
 	}
-	// 逐条插入新关联（原生 SQL 避免 GORM 复合主键问题）
-	for _, tid := range tagIDs {
-		if err := r.db.Exec("INSERT INTO bill_tags (bill_id, tag_id) VALUES (CAST(? AS uuid), CAST(? AS uuid))", billID.String(), tid.String()).Error; err != nil {
-			return fmt.Errorf("insert bill_tag (bill=%s, tag=%s): %w", billID, tid, err)
-		}
-	}
-	return nil
+	
+	return r.db.Model(&bill).Association("Tags").Replace(tags)
 }
 
-// GetBillTags 获取账单关联的所有标签（原生 SQL 避免 GORM JOIN 问题）
+// GetBillTags 获取账单关联的所有标签（使用 GORM 原生关联重写）
 func (r *tagRepository) GetBillTags(billID uuid.UUID) ([]model.Tag, error) {
 	var tags []model.Tag
-	err := r.db.Raw(`
-		SELECT t.* FROM tags t
-		INNER JOIN bill_tags bt ON bt.tag_id = t.id
-		WHERE bt.bill_id = CAST(? AS uuid) AND t.deleted_at IS NULL
-	`, billID.String()).Scan(&tags).Error
+	bill := model.Bill{Model: global.Model{ID: billID}}
+	err := r.db.Model(&bill).Association("Tags").Find(&tags)
 	return tags, err
 }
 

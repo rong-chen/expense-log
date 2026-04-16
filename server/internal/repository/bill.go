@@ -61,13 +61,13 @@ func (r *billRepository) GetByUserID(userID uuid.UUID, page, pageSize int) ([]mo
 	query.Count(&total)
 
 	offset := (page - 1) * pageSize
-	err := query.Order("transaction_date DESC").Offset(offset).Limit(pageSize).Find(&bills).Error
+	err := query.Preload("Tags").Order("transaction_date DESC").Offset(offset).Limit(pageSize).Find(&bills).Error
 	return bills, total, err
 }
 
 func (r *billRepository) GetByID(id uuid.UUID) (*model.Bill, error) {
 	var bill model.Bill
-	err := r.db.Where("id = ?", id).First(&bill).Error
+	err := r.db.Preload("Tags").Where("id = ?", id).First(&bill).Error
 	if err != nil {
 		return nil, err
 	}

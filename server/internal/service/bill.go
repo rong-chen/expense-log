@@ -199,7 +199,7 @@ func (s *billService) GetDashboardStats(userID uuid.UUID) (*DashboardStatRespons
 
 func (s *billService) GetBillDetail(userID uuid.UUID, billID uuid.UUID) (*model.Bill, error) {
 	var bill model.Bill
-	err := s.db.Where("id = ? AND user_id = ?", billID, userID).First(&bill).Error
+	err := s.db.Preload("Tags").Where("id = ? AND user_id = ?", billID, userID).First(&bill).Error
 	if err != nil {
 		return nil, err
 	}
@@ -228,7 +228,7 @@ func (s *billService) GetBillList(userID uuid.UUID, page, pageSize int, keyword,
 	query.Count(&total)
 
 	offset := (page - 1) * pageSize
-	err := query.Order("transaction_date DESC").Offset(offset).Limit(pageSize).Find(&bills).Error
+	err := query.Preload("Tags").Order("transaction_date DESC").Offset(offset).Limit(pageSize).Find(&bills).Error
 	return bills, total, err
 }
 

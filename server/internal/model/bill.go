@@ -41,6 +41,7 @@ type Bill struct {
 	EmailID      *uuid.UUID `gorm:"type:uuid;index" json:"email_id,omitempty"`    // 关联邮件 (可为空)
 	OriginalFile string     `gorm:"type:varchar(500)" json:"original_file"`       // 原始文件路径
 	RawContent   string     `gorm:"type:text" json:"-"`                           // VLM 原始返回 (不传给前端)
+	Tags         []Tag      `gorm:"many2many:bill_tags;" json:"tags,omitempty"`   // 账单标签
 }
 
 func (b *Bill) BeforeCreate(tx *gorm.DB) (err error) {
