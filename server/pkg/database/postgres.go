@@ -14,8 +14,10 @@ func InitPostgres(cfg model.PostgresConfig) *gorm.DB {
 		cfg.Host, cfg.User, cfg.Password, cfg.DBName, cfg.Port, cfg.SSLMode)
 
 	var err error
-	// 1. 建立连接
-	DB, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	// 1. 建立连接 (禁用外键约束生成，避免历史遗留的数据类型如 varchar与uuid 冲突导致 AutoMigrate 失败)
+	DB, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
+		DisableForeignKeyConstraintWhenMigrating: true,
+	})
 	if err != nil {
 		panic(fmt.Sprintf("数据库连接失败: %v", err))
 	}
