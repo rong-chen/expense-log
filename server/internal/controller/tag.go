@@ -167,7 +167,7 @@ func (ctrl *tagController) SetBillTags(c *gin.Context) {
 
 	if err := ctrl.repo.SetBillTags(billID, tagIDs); err != nil {
 		fmt.Printf("[SetBillTags] 保存失败: %v\n", err)
-		response.Fail(c, http.StatusInternalServerError, 50000, "设置标签失败")
+		response.Fail(c, http.StatusInternalServerError, 50000, "设置标签失败: "+err.Error())
 		return
 	}
 
@@ -191,7 +191,7 @@ func (ctrl *tagController) GetBillTags(c *gin.Context) {
 
 	tags, err := ctrl.repo.GetBillTags(billID)
 	if err != nil {
-		response.Fail(c, http.StatusInternalServerError, 50000, "获取账单标签失败")
+		response.Fail(c, http.StatusInternalServerError, 50000, "获取账单标签失败: "+err.Error())
 		return
 	}
 	if tags == nil {
