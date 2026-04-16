@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { tagApi } from '@/api'
 import { toast } from 'vue-sonner'
 import TopNavBar from '@/components/layout/TopNavBar.vue'
@@ -77,6 +77,10 @@ async function deleteTag(tag: Tag) {
 
 onMounted(() => {
   fetchTags()
+})
+
+onUnmounted(() => {
+  toast.dismiss()
 })
 </script>
 
