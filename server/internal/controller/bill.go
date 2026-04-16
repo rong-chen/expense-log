@@ -55,6 +55,22 @@ func (ctrl *billController) getUserID(c *gin.Context) (uuid.UUID, bool) {
 	return userID, ok
 }
 
+// getLedgerID 解析或回退获取当前账本ID
+func (ctrl *billController) getLedgerID(c *gin.Context, userID uuid.UUID) uuid.UUID {
+	ledgerHeader := c.GetHeader("X-Ledger-Id")
+	if ledgerHeader != "" {
+		if id, err := uuid.Parse(ledgerHeader); err == nil {
+			return id
+		}
+	}
+	// 兼容回退：前端未传或旧版时拉取个人默认账本
+	var ledger model.Ledger
+	if err := ctrl.db.Where("owner_id = ? AND type = ?", userID, model.LedgerTypePersonal).First(&ledger).Error; err == nil {
+		return ledger.ID
+	}
+	return uuid.Nil
+}
+
 // GetTrendStats 获取最近6个月的支出趋势
 func (ctrl *billController) GetTrendStats(c *gin.Context) {
 	userID, ok := ctrl.getUserID(c)
@@ -63,7 +79,13 @@ func (ctrl *billController) GetTrendStats(c *gin.Context) {
 		return
 	}
 
-	res, err := ctrl.serv.GetTrendStats(userID)
+	ledgerID := ctrl.getLedgerID(c, userID)
+	if ledgerID == uuid.Nil {
+		response.Fail(c, http.StatusInternalServerError, 50000, "无法确定操作账本")
+		return
+	}
+
+	res, err := ctrl.serv.GetTrendStats(userID, ledgerID)
 	if err != nil {
 		response.Fail(c, http.StatusInternalServerError, 50000, err.Error())
 		return
@@ -79,7 +101,13 @@ func (ctrl *billController) GetCategoryStats(c *gin.Context) {
 		return
 	}
 
-	res, err := ctrl.serv.GetCategoryStats(userID)
+	ledgerID := ctrl.getLedgerID(c, userID)
+	if ledgerID == uuid.Nil {
+		response.Fail(c, http.StatusInternalServerError, 50000, "无法确定操作账本")
+		return
+	}
+
+	res, err := ctrl.serv.GetCategoryStats(userID, ledgerID)
 	if err != nil {
 		response.Fail(c, http.StatusInternalServerError, 50000, err.Error())
 		return
@@ -95,7 +123,13 @@ func (ctrl *billController) GetDashboardStats(c *gin.Context) {
 		return
 	}
 
-	res, err := ctrl.serv.GetDashboardStats(userID)
+	ledgerID := ctrl.getLedgerID(c, userID)
+	if ledgerID == uuid.Nil {
+		response.Fail(c, http.StatusInternalServerError, 50000, "无法确定操作账本")
+		return
+	}
+
+	res, err := ctrl.serv.GetDashboardStats(userID, ledgerID)
 	if err != nil {
 		response.Fail(c, http.StatusInternalServerError, 50000, err.Error())
 		return
@@ -195,6 +229,12 @@ func (ctrl *billController) UploadImageReceipt(c *gin.Context) {
 	userIDValue, _ := c.Get("userID")
 	userID, _ := userIDValue.(uuid.UUID)
 
+	ledgerID := ctrl.getLedgerID(c, userID)
+	if ledgerID == uuid.Nil {
+		c.String(http.StatusInternalServerError, "failed: cannot determine ledger")
+		return
+	}
+
 	// 提前检查并扣除额度
 	imageCount := len(readers)
 	ctxQuota := context.Background()
@@ -263,7 +303,7 @@ func (ctrl *billController) UploadImageReceipt(c *gin.Context) {
 			if analysis.Category == "退款" {
 				var originalBill model.Bill
 				// 按 金额 + 商户名模糊匹配 + 非退款状态 查找原始订单
-				matchQuery := ctrl.db.Where("user_id = ? AND amount = ? AND category != '退款'", userID, analysis.Amount)
+				matchQuery := ctrl.db.Where("ledger_id = ? AND amount = ? AND category != '退款'", ledgerID, analysis.Amount)
 				if analysis.Merchant != "" {
 					matchQuery = matchQuery.Where("merchant LIKE ?", "%"+analysis.Merchant+"%")
 				}
@@ -277,7 +317,7 @@ func (ctrl *billController) UploadImageReceipt(c *gin.Context) {
 						"remark":   refundRemark,
 					})
 					successCount++
-					ctrl.serv.InvalidateUserCache(userID)
+					ctrl.serv.InvalidateLedgerCache(ledgerID)
 					fmt.Printf("🔄 第 %d 张图: 退款自动匹配成功! 已将原始订单 %s (¥%.2f %s) 标记为退款\n",
 						index, originalBill.ID.String(), originalBill.Amount, originalBill.Merchant)
 					return // 不再创建新记录
@@ -287,6 +327,7 @@ func (ctrl *billController) UploadImageReceipt(c *gin.Context) {
 
 			bill := &model.Bill{
 				UserID:          userID,
+				LedgerID:        &ledgerID,
 				Amount:          analysis.Amount,
 				Merchant:        analysis.Merchant,
 				TransactionNo:   analysis.TransactionNo,
@@ -300,7 +341,7 @@ func (ctrl *billController) UploadImageReceipt(c *gin.Context) {
 
 			if err := ctrl.db.Create(bill).Error; err == nil {
 				successCount++
-				ctrl.serv.InvalidateUserCache(userID)
+				ctrl.serv.InvalidateLedgerCache(ledgerID)
 			} else {
 				fmt.Printf("⚠️ 第 %d 张图账单入库失败(如属单号重复则正常被拦截): %v\n", index, err)
 			}
@@ -360,7 +401,13 @@ func (ctrl *billController) GetBillList(c *gin.Context) {
 	category := c.Query("category")
 	date := c.Query("date")
 
-	bills, total, err := ctrl.serv.GetBillList(userID, page, pageSize, keyword, category, date)
+	ledgerID := ctrl.getLedgerID(c, userID)
+	if ledgerID == uuid.Nil {
+		response.Fail(c, http.StatusInternalServerError, 50000, "无法确定操作账本")
+		return
+	}
+
+	bills, total, err := ctrl.serv.GetBillList(userID, ledgerID, page, pageSize, keyword, category, date)
 	if err != nil {
 		response.Fail(c, http.StatusInternalServerError, 50000, err.Error())
 		return
@@ -458,7 +505,8 @@ func (ctrl *billController) UpdateBill(c *gin.Context) {
 		response.Fail(c, http.StatusInternalServerError, 50000, "更新失败: "+err.Error())
 		return
 	}
-	ctrl.serv.InvalidateUserCache(userID)
+	ledgerID := ctrl.getLedgerID(c, userID)
+	ctrl.serv.InvalidateLedgerCache(ledgerID)
 	response.Success(c, "success")
 }
 
@@ -478,7 +526,8 @@ func (ctrl *billController) DeleteBill(c *gin.Context) {
 		response.Fail(c, http.StatusInternalServerError, 50000, "删除失败: "+err.Error())
 		return
 	}
-	ctrl.serv.InvalidateUserCache(userID)
+	ledgerID := ctrl.getLedgerID(c, userID)
+	ctrl.serv.InvalidateLedgerCache(ledgerID)
 	response.Success(c, "success")
 }
 
@@ -511,8 +560,15 @@ func (ctrl *billController) CreateBill(c *gin.Context) {
 		}
 	}
 
+	ledgerID := ctrl.getLedgerID(c, userID)
+	if ledgerID == uuid.Nil {
+		response.Fail(c, http.StatusInternalServerError, 50000, "无法确定要归属的账本")
+		return
+	}
+
 	bill := &model.Bill{
 		UserID:          userID,
+		LedgerID:        &ledgerID,
 		Amount:          req.Amount,
 		Merchant:        html.EscapeString(req.Merchant),
 		Category:        html.EscapeString(req.Category),
@@ -525,6 +581,6 @@ func (ctrl *billController) CreateBill(c *gin.Context) {
 		response.Fail(c, http.StatusInternalServerError, 50000, "录入失败: "+err.Error())
 		return
 	}
-	ctrl.serv.InvalidateUserCache(userID)
+	ctrl.serv.InvalidateLedgerCache(ledgerID)
 	response.Success(c, "success")
 }

@@ -8,11 +8,15 @@ const api = axios.create({
   withCredentials: true, // 携带 HttpOnly Cookie (refresh_token)
 })
 
-// 请求拦截：自动注入 Access Token
+// 请求拦截：自动注入 Access Token 和 Ledger ID
 api.interceptors.request.use((config) => {
   const auth = useAuthStore()
   if (auth.accessToken) {
     config.headers.Authorization = `Bearer ${auth.accessToken}`
+  }
+  const currentLedgerId = localStorage.getItem('currentLedgerId')
+  if (currentLedgerId) {
+    config.headers['X-Ledger-Id'] = currentLedgerId
   }
   return config
 })
@@ -127,4 +131,10 @@ export const tagApi = {
   remove: (id: string) => api.delete(`/tag/${id}`),
   setBillTags: (billID: string, tagIDs: string[]) => api.post(`/tag/bill/${billID}`, { tag_ids: tagIDs }),
   getBillTags: (billID: string) => api.get(`/tag/bill/${billID}`),
+}
+
+export const ledgerApi = {
+  list: () => api.get('/ledger'),
+  create: (data: { name: string; description: string }) => api.post('/ledger', data),
+  join: (data: { invite_code: string }) => api.post('/ledger/join', data)
 }

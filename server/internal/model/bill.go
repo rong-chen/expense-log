@@ -23,7 +23,8 @@ const (
 // Bill 账单记录
 type Bill struct {
 	global.Model
-	UserID uuid.UUID `gorm:"type:uuid;index;not null" json:"user_id"` // 所属用户
+	UserID   uuid.UUID  `gorm:"type:uuid;index;not null" json:"user_id"` // 所属用户 (记录人)
+	LedgerID *uuid.UUID `gorm:"type:uuid;index;default:null" json:"ledger_id"` // 所属账本 (为null或新兼容分配给个人账本)
 
 	// --- 核心交易信息 ---
 	TransactionNo   string     `gorm:"type:varchar(100);index" json:"transaction_no"`        // 交易单号 (支付宝/微信)

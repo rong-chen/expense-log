@@ -13,15 +13,15 @@ import (
 )
 
 type BillService interface {
-	GetTrendStats(userID uuid.UUID) ([]TrendStatResponse, error)
-	GetCategoryStats(userID uuid.UUID) ([]CategoryStatResponse, error)
-	GetDashboardStats(userID uuid.UUID) (*DashboardStatResponse, error)
-	GetBillDetail(userID uuid.UUID, billID uuid.UUID) (*model.Bill, error)
-	GetBillList(userID uuid.UUID, page, pageSize int, keyword, category, date string) ([]model.Bill, int64, error)
+	GetTrendStats(userID, ledgerID uuid.UUID) ([]TrendStatResponse, error)
+	GetCategoryStats(userID, ledgerID uuid.UUID) ([]CategoryStatResponse, error)
+	GetDashboardStats(userID, ledgerID uuid.UUID) (*DashboardStatResponse, error)
+	GetBillDetail(userID, billID uuid.UUID) (*model.Bill, error)
+	GetBillList(userID, ledgerID uuid.UUID, page, pageSize int, keyword, category, date string) ([]model.Bill, int64, error)
 	UpdateRemark(userID uuid.UUID, billID uuid.UUID, remark string) error
 	UpdateBill(userID uuid.UUID, billID uuid.UUID, dto UpdateBillDTO) error
 	DeleteBill(userID uuid.UUID, billID uuid.UUID) error
-	InvalidateUserCache(userID uuid.UUID)
+	InvalidateLedgerCache(ledgerID uuid.UUID)
 }
 
 type UpdateBillDTO struct {
@@ -59,9 +59,9 @@ type DashboardStatResponse struct {
 	PendingEmail     int64   `json:"pending_email"`
 }
 
-func (s *billService) GetTrendStats(userID uuid.UUID) ([]TrendStatResponse, error) {
+func (s *billService) GetTrendStats(userID, ledgerID uuid.UUID) ([]TrendStatResponse, error) {
 	ctx := context.Background()
-	cacheKey := fmt.Sprintf("user:%s:stats:trend", userID.String())
+	cacheKey := fmt.Sprintf("ledger:%s:stats:trend", ledgerID.String())
 
 	// 1. 读取缓存
 	if cached, err := s.rdb.Get(ctx, cacheKey).Result(); err == nil {
@@ -78,7 +78,7 @@ func (s *billService) GetTrendStats(userID uuid.UUID) ([]TrendStatResponse, erro
 	var results []TrendStatResponse
 	err := s.db.Model(&model.Bill{}).
 		Select("to_char(transaction_date, 'YYYY-MM') as month, sum(amount) as expense").
-		Where("user_id = ? AND transaction_date >= ? AND (category != '退款' OR category IS NULL)", userID, startOfMonth).
+		Where("ledger_id = ? AND ledger_id IN (SELECT ledger_id FROM ledger_members WHERE user_id = ?) AND transaction_date >= ? AND (category != '退款' OR category IS NULL)", ledgerID, userID, startOfMonth).
 		Group("to_char(transaction_date, 'YYYY-MM')").
 		Order("month asc").
 		Scan(&results).Error
@@ -110,9 +110,9 @@ func (s *billService) GetTrendStats(userID uuid.UUID) ([]TrendStatResponse, erro
 	return finalRes, nil
 }
 
-func (s *billService) GetCategoryStats(userID uuid.UUID) ([]CategoryStatResponse, error) {
+func (s *billService) GetCategoryStats(userID, ledgerID uuid.UUID) ([]CategoryStatResponse, error) {
 	ctx := context.Background()
-	cacheKey := fmt.Sprintf("user:%s:stats:category", userID.String())
+	cacheKey := fmt.Sprintf("ledger:%s:stats:category", ledgerID.String())
 
 	if cached, err := s.rdb.Get(ctx, cacheKey).Result(); err == nil {
 		var res []CategoryStatResponse
@@ -128,7 +128,7 @@ func (s *billService) GetCategoryStats(userID uuid.UUID) ([]CategoryStatResponse
 
 	err := s.db.Model(&model.Bill{}).
 		Select("category as name, count(*) as value"). // 暂时以笔数占比为例，或者用 sum(amount)
-		Where("user_id = ? AND transaction_date >= ? AND category != '' AND category IS NOT NULL", userID, startOfMonth).
+		Where("ledger_id = ? AND ledger_id IN (SELECT ledger_id FROM ledger_members WHERE user_id = ?) AND transaction_date >= ? AND category != '' AND category IS NOT NULL", ledgerID, userID, startOfMonth).
 		Group("category").
 		Order("value desc").
 		Scan(&results).Error
@@ -142,9 +142,9 @@ func (s *billService) GetCategoryStats(userID uuid.UUID) ([]CategoryStatResponse
 	return results, err
 }
 
-func (s *billService) GetDashboardStats(userID uuid.UUID) (*DashboardStatResponse, error) {
+func (s *billService) GetDashboardStats(userID, ledgerID uuid.UUID) (*DashboardStatResponse, error) {
 	ctx := context.Background()
-	cacheKey := fmt.Sprintf("user:%s:stats:dashboard", userID.String())
+	cacheKey := fmt.Sprintf("ledger:%s:stats:dashboard", ledgerID.String())
 
 	if cached, err := s.rdb.Get(ctx, cacheKey).Result(); err == nil {
 		var res DashboardStatResponse
@@ -161,20 +161,20 @@ func (s *billService) GetDashboardStats(userID uuid.UUID) (*DashboardStatRespons
 	// 这个月总支出（排除退款）
 	var monthExpense float64
 	s.db.Model(&model.Bill{}).
-		Where("user_id = ? AND transaction_date >= ? AND (category != '退款' OR category IS NULL)", userID, startOfMonth).
+		Where("ledger_id = ? AND ledger_id IN (SELECT ledger_id FROM ledger_members WHERE user_id = ?) AND transaction_date >= ? AND (category != '退款' OR category IS NULL)", ledgerID, userID, startOfMonth).
 		Select("COALESCE(sum(amount), 0)").Scan(&monthExpense)
 
 	// 本月账单数（排除退款）
 	var billCount int64
 	s.db.Model(&model.Bill{}).
-		Where("user_id = ? AND transaction_date >= ? AND (category != '退款' OR category IS NULL)", userID, startOfMonth).
+		Where("ledger_id = ? AND ledger_id IN (SELECT ledger_id FROM ledger_members WHERE user_id = ?) AND transaction_date >= ? AND (category != '退款' OR category IS NULL)", ledgerID, userID, startOfMonth).
 		Count(&billCount)
 
 	// 上月总支出（排除退款）
 	lastMonthStart := startOfMonth.AddDate(0, -1, 0)
 	var lastMonthExpense float64
 	s.db.Model(&model.Bill{}).
-		Where("user_id = ? AND transaction_date >= ? AND transaction_date < ? AND (category != '退款' OR category IS NULL)", userID, lastMonthStart, startOfMonth).
+		Where("ledger_id = ? AND ledger_id IN (SELECT ledger_id FROM ledger_members WHERE user_id = ?) AND transaction_date >= ? AND transaction_date < ? AND (category != '退款' OR category IS NULL)", ledgerID, userID, lastMonthStart, startOfMonth).
 		Select("COALESCE(sum(amount), 0)").Scan(&lastMonthExpense)
 
 	// 未处理邮件 (status = 0 或者 parsing_status)
@@ -197,22 +197,29 @@ func (s *billService) GetDashboardStats(userID uuid.UUID) (*DashboardStatRespons
 	return &res, nil
 }
 
-func (s *billService) GetBillDetail(userID uuid.UUID, billID uuid.UUID) (*model.Bill, error) {
+func (s *billService) GetBillDetail(userID, billID uuid.UUID) (*model.Bill, error) {
 	var bill model.Bill
-	err := s.db.Preload("Tags").Where("id = ? AND user_id = ?", billID, userID).First(&bill).Error
+	// 先校验访问账本的权限
+	var hasAccess int64
+	s.db.Model(&model.LedgerMember{}).Where("ledger_id = (SELECT ledger_id FROM bills WHERE id = ?) AND user_id = ?", billID, userID).Count(&hasAccess)
+	if hasAccess == 0 {
+		return nil, fmt.Errorf("无权限访问此账单")
+	}
+
+	err := s.db.Preload("Tags").Where("id = ?", billID).First(&bill).Error
 	if err != nil {
 		return nil, err
 	}
 	return &bill, nil
 }
 
-func (s *billService) GetBillList(userID uuid.UUID, page, pageSize int, keyword, category, date string) ([]model.Bill, int64, error) {
+func (s *billService) GetBillList(userID, ledgerID uuid.UUID, page, pageSize int, keyword, category, date string) ([]model.Bill, int64, error) {
 	// 懒得每次去重写 repo 实例，直接内敛使用。因为原来没有在这个 service 里注入 repo。
 	// 为了最快实现，我们用 gorm db 直接查
 	var bills []model.Bill
 	var total int64
 
-	query := s.db.Model(&model.Bill{}).Where("user_id = ?", userID)
+	query := s.db.Model(&model.Bill{}).Where("ledger_id = ? AND ledger_id IN (SELECT ledger_id FROM ledger_members WHERE user_id = ?)", ledgerID, userID)
 
 	if keyword != "" {
 		query = query.Where("merchant LIKE ? OR remark LIKE ?", "%"+keyword+"%", "%"+keyword+"%")
@@ -253,11 +260,11 @@ func (s *billService) DeleteBill(userID uuid.UUID, billID uuid.UUID) error {
 	return s.db.Where("id = ? AND user_id = ?", billID, userID).Delete(&model.Bill{}).Error
 }
 
-func (s *billService) InvalidateUserCache(userID uuid.UUID) {
+func (s *billService) InvalidateLedgerCache(ledgerID uuid.UUID) {
 	ctx := context.Background()
 	s.rdb.Del(ctx,
-		fmt.Sprintf("user:%s:stats:trend", userID.String()),
-		fmt.Sprintf("user:%s:stats:category", userID.String()),
-		fmt.Sprintf("user:%s:stats:dashboard", userID.String()),
+		fmt.Sprintf("ledger:%s:stats:trend", ledgerID.String()),
+		fmt.Sprintf("ledger:%s:stats:category", ledgerID.String()),
+		fmt.Sprintf("ledger:%s:stats:dashboard", ledgerID.String()),
 	)
 }

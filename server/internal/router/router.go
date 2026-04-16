@@ -61,6 +61,9 @@ func Start(db *gorm.DB, rdb *redis.Client, cfg *model.Config) {
 	// 注册用户路由
 	item.NewUserRouter(v1, db, rdb, cfg.JWT)
 
+	// 注册账本路由
+	item.NewLedgerRouter(v1, db, rdb, cfg.JWT)
+
 	// 注册邀请码路由
 	item.NewInvitationRouter(v1, db, rdb, cfg.JWT)
 

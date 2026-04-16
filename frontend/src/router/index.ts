@@ -61,6 +61,18 @@ const router = createRouter({
       meta: { auth: true }
     },
     {
+      path: '/ledger/create',
+      name: 'LedgerCreate',
+      component: () => import('@/pages/ledger/LedgerCreate.vue'),
+      meta: { auth: true, hideBottomNav: true }
+    },
+    {
+      path: '/ledger/join',
+      name: 'LedgerJoin',
+      component: () => import('@/pages/ledger/LedgerJoin.vue'),
+      meta: { auth: true, hideBottomNav: true }
+    },
+    {
       // 我的主页
       path: '/profile',
       name: 'profile',

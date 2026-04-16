@@ -3,8 +3,11 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { billApi } from '@/api'
 import { FileText, Search } from 'lucide-vue-next'
+import { useAuthStore } from '@/stores/auth'
+import { toast } from 'vue-sonner'
 
 const router = useRouter()
+const auth = useAuthStore()
 
 const bills = ref<any[]>([])
 const loading = ref(true)
@@ -98,8 +101,12 @@ onMounted(() => {
   }, 500)
 })
 
-function openEditPage(billID: string) {
-  router.push('/bill/edit/' + billID)
+function openEditPage(bill: any) {
+  if (bill.user_id !== auth.user?.uid) {
+    toast.error('这是他人记录的账单，您无权修改')
+    return
+  }
+  router.push('/bill/edit/' + bill.ID)
 }
 </script>
 
@@ -139,7 +146,7 @@ function openEditPage(billID: string) {
 
     <!-- 真实数据 -->
     <div v-else-if="bills.length > 0" class="bill-list">
-      <div v-for="bill in bills" :key="bill.ID" class="bill-card card" @click="openEditPage(bill.ID)" style="cursor: pointer;">
+      <div v-for="bill in bills" :key="bill.ID" class="bill-card card" @click="openEditPage(bill)" style="cursor: pointer;">
         
         <!-- 商户名与备注 -->
         <div class="bill-info">
@@ -147,9 +154,10 @@ function openEditPage(billID: string) {
           <div class="bill-meta text-truncate">
             <span class="meta-item">{{ formatDate(bill.transaction_date) }}</span>
             <span class="meta-item" v-if="bill.category">· {{ bill.category }}</span>
+            <span class="meta-item" v-if="bill.user_id !== auth.user?.uid" style="color: var(--primary);">· 他人</span>
           </div>
           <div class="bill-remark text-truncate">
-            {{ bill.remark || '（点击添加备注）' }}
+            {{ bill.remark || '（暂无备注）' }}
           </div>
         </div>
 
