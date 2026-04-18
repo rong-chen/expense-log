@@ -217,7 +217,7 @@ function openEditPage(bill: any) {
         <div class="drawer-header">切换账本</div>
         <div class="ledger-list">
           <div 
-            v-for="l in ledgerStore.ledgers" 
+            v-for="l in ledgerStore.allLedgers" 
             :key="l.ID" 
             class="ledger-item"
             :class="{ active: l.ID === ledgerStore.currentLedgerId }"

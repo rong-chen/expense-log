@@ -21,7 +21,7 @@ type BillService interface {
 	UpdateRemark(userID uuid.UUID, billID uuid.UUID, remark string) error
 	UpdateBill(userID uuid.UUID, billID uuid.UUID, dto UpdateBillDTO) error
 	DeleteBill(userID uuid.UUID, billID uuid.UUID) error
-	InvalidateLedgerCache(ledgerID uuid.UUID)
+	InvalidateLedgerCache(userID, ledgerID uuid.UUID)
 }
 
 type UpdateBillDTO struct {
@@ -79,6 +79,10 @@ func (s *billService) buildLedgerScope(query *gorm.DB, userID, ledgerID uuid.UUI
 func (s *billService) GetTrendStats(userID, ledgerID uuid.UUID) ([]TrendStatResponse, error) {
 	ctx := context.Background()
 	cacheKey := fmt.Sprintf("ledger:%s:stats:trend", ledgerID.String())
+	if ledgerID == uuid.Nil {
+		// 无账单隔离模式下，缓存按用户隔离
+		cacheKey = fmt.Sprintf("user:%s:stats:trend", userID.String())
+	}
 
 	// 1. 读取缓存
 	if cached, err := s.rdb.Get(ctx, cacheKey).Result(); err == nil {
@@ -131,6 +135,9 @@ func (s *billService) GetTrendStats(userID, ledgerID uuid.UUID) ([]TrendStatResp
 func (s *billService) GetCategoryStats(userID, ledgerID uuid.UUID) ([]CategoryStatResponse, error) {
 	ctx := context.Background()
 	cacheKey := fmt.Sprintf("ledger:%s:stats:category", ledgerID.String())
+	if ledgerID == uuid.Nil {
+		cacheKey = fmt.Sprintf("user:%s:stats:category", userID.String())
+	}
 
 	if cached, err := s.rdb.Get(ctx, cacheKey).Result(); err == nil {
 		var res []CategoryStatResponse
@@ -163,6 +170,9 @@ func (s *billService) GetCategoryStats(userID, ledgerID uuid.UUID) ([]CategorySt
 func (s *billService) GetDashboardStats(userID, ledgerID uuid.UUID) (*DashboardStatResponse, error) {
 	ctx := context.Background()
 	cacheKey := fmt.Sprintf("ledger:%s:stats:dashboard", ledgerID.String())
+	if ledgerID == uuid.Nil {
+		cacheKey = fmt.Sprintf("user:%s:stats:dashboard", userID.String())
+	}
 
 	if cached, err := s.rdb.Get(ctx, cacheKey).Result(); err == nil {
 		var res DashboardStatResponse
@@ -287,11 +297,21 @@ func (s *billService) DeleteBill(userID uuid.UUID, billID uuid.UUID) error {
 	return s.db.Where("id = ? AND user_id = ?", billID, userID).Delete(&model.Bill{}).Error
 }
 
-func (s *billService) InvalidateLedgerCache(ledgerID uuid.UUID) {
+func (s *billService) InvalidateLedgerCache(userID, ledgerID uuid.UUID) {
 	ctx := context.Background()
-	s.rdb.Del(ctx,
-		fmt.Sprintf("ledger:%s:stats:trend", ledgerID.String()),
-		fmt.Sprintf("ledger:%s:stats:category", ledgerID.String()),
-		fmt.Sprintf("ledger:%s:stats:dashboard", ledgerID.String()),
-	)
+	var cacheKeys []string
+	if ledgerID == uuid.Nil {
+		cacheKeys = []string{
+			fmt.Sprintf("user:%s:stats:trend", userID.String()),
+			fmt.Sprintf("user:%s:stats:category", userID.String()),
+			fmt.Sprintf("user:%s:stats:dashboard", userID.String()),
+		}
+	} else {
+		cacheKeys = []string{
+			fmt.Sprintf("ledger:%s:stats:trend", ledgerID.String()),
+			fmt.Sprintf("ledger:%s:stats:category", ledgerID.String()),
+			fmt.Sprintf("ledger:%s:stats:dashboard", ledgerID.String()),
+		}
+	}
+	s.rdb.Del(ctx, cacheKeys...)
 }

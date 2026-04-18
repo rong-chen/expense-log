@@ -309,7 +309,7 @@ func (ctrl *billController) UploadImageReceipt(c *gin.Context) {
 						"remark":   refundRemark,
 					})
 					successCount++
-					ctrl.serv.InvalidateLedgerCache(ledgerID)
+					ctrl.serv.InvalidateLedgerCache(userID, ledgerID)
 					fmt.Printf("🔄 第 %d 张图: 退款自动匹配成功! 已将原始订单 %s (¥%.2f %s) 标记为退款\n",
 						index, originalBill.ID.String(), originalBill.Amount, originalBill.Merchant)
 					return // 不再创建新记录
@@ -317,9 +317,14 @@ func (ctrl *billController) UploadImageReceipt(c *gin.Context) {
 				fmt.Printf("⚠️ 第 %d 张图: 退款未匹配到原始订单，将作为独立退款记录入库\n", index)
 			}
 
+			var ledgerIDPtr *uuid.UUID
+			if ledgerID != uuid.Nil {
+				ledgerIDPtr = &ledgerID
+			}
+
 			bill := &model.Bill{
 				UserID:          userID,
-				LedgerID:        &ledgerID,
+				LedgerID:        ledgerIDPtr,
 				Amount:          analysis.Amount,
 				Merchant:        analysis.Merchant,
 				TransactionNo:   analysis.TransactionNo,
@@ -333,7 +338,7 @@ func (ctrl *billController) UploadImageReceipt(c *gin.Context) {
 
 			if err := ctrl.db.Create(bill).Error; err == nil {
 				successCount++
-				ctrl.serv.InvalidateLedgerCache(ledgerID)
+				ctrl.serv.InvalidateLedgerCache(userID, ledgerID)
 			} else {
 				fmt.Printf("⚠️ 第 %d 张图账单入库失败(如属单号重复则正常被拦截): %v\n", index, err)
 			}
@@ -498,7 +503,7 @@ func (ctrl *billController) UpdateBill(c *gin.Context) {
 		return
 	}
 	ledgerID := ctrl.getLedgerID(c, userID)
-	ctrl.serv.InvalidateLedgerCache(ledgerID)
+	ctrl.serv.InvalidateLedgerCache(userID, ledgerID)
 	response.Success(c, "success")
 }
 
@@ -519,7 +524,7 @@ func (ctrl *billController) DeleteBill(c *gin.Context) {
 		return
 	}
 	ledgerID := ctrl.getLedgerID(c, userID)
-	ctrl.serv.InvalidateLedgerCache(ledgerID)
+	ctrl.serv.InvalidateLedgerCache(userID, ledgerID)
 	response.Success(c, "success")
 }
 
@@ -575,6 +580,6 @@ func (ctrl *billController) CreateBill(c *gin.Context) {
 		response.Fail(c, http.StatusInternalServerError, 50000, "录入失败: "+err.Error())
 		return
 	}
-	ctrl.serv.InvalidateLedgerCache(ledgerID)
+	ctrl.serv.InvalidateLedgerCache(userID, ledgerID)
 	response.Success(c, "success")
 }

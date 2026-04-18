@@ -27,5 +27,6 @@ func NewAdminRouter(router *gin.RouterGroup, db *gorm.DB, rdb *redis.Client, jwt
 	{
 		admin.GET("/users", con.ListUsers)
 		admin.POST("/role", con.UpdateUserRole)
+		admin.POST("/user/password", con.ResetUserPassword)
 	}
 }

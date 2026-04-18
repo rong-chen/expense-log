@@ -13,6 +13,7 @@ import (
 type AdminController interface {
 	ListUsers(c *gin.Context)
 	UpdateUserRole(c *gin.Context)
+	ResetUserPassword(c *gin.Context)
 }
 
 type adminController struct {
@@ -54,6 +55,25 @@ func (con *adminController) UpdateUserRole(c *gin.Context) {
 
 	if err := con.serv.UpdateUserRole(req.UserID, req.Role); err != nil {
 		response.Fail(c, http.StatusInternalServerError, 50001, "更新角色失败: "+err.Error())
+		return
+	}
+
+	response.Success(c, nil)
+}
+
+func (con *adminController) ResetUserPassword(c *gin.Context) {
+	var req struct {
+		UserID   uuid.UUID `json:"user_id" binding:"required"`
+		Password string    `json:"password" binding:"required,min=6"`
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.Fail(c, http.StatusBadRequest, 40001, "参数错误: "+err.Error())
+		return
+	}
+
+	if err := con.serv.ResetUserPassword(req.UserID, req.Password); err != nil {
+		response.Fail(c, http.StatusInternalServerError, 50001, "重置密码失败: "+err.Error())
 		return
 	}
 

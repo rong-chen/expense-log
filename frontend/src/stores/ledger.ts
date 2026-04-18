@@ -23,12 +23,12 @@ export const useLedgerStore = defineStore('ledger', {
         const res: any = await ledgerApi.list()
         if (res.code === 0 && res.data) {
           this.ledgers = res.data
-          // 如果当前没有选定，或者是无效的账本
-          if (!this.currentLedgerId || !this.ledgers.find(l => l.ID === this.currentLedgerId)) {
+          // 只有当存了一个非空 ID 且该 ID 已经在物理列表中失效时，才进行回退
+          if (this.currentLedgerId !== '' && !this.ledgers.find(l => l.ID === this.currentLedgerId)) {
             if (this.ledgers.length > 0) {
-              this.setCurrentLedger(this.ledgers[0].ID) // 默认切到第一个
+              this.setCurrentLedger(this.ledgers[0].ID)
             } else {
-              this.setCurrentLedger('') // 清空无效的暂存 ID，完全退化为无账本模式
+              this.setCurrentLedger('') 
             }
           }
         } else {
@@ -54,7 +54,29 @@ export const useLedgerStore = defineStore('ledger', {
     }
   },
   getters: {
+    // 聚合所有物理账本和虚拟的“个人私有空间”
+    allLedgers(state): Ledger[] {
+      const personalVirtual: Ledger = {
+        ID: '',
+        name: '个人主账本',
+        description: '您的私有记账空间，不与他人共享',
+        owner_id: '',
+        type: 'personal',
+        invite_code: ''
+      }
+      return [personalVirtual, ...state.ledgers]
+    },
     currentLedger(state): Ledger | undefined {
+      if (!state.currentLedgerId) {
+        return {
+          ID: '',
+          name: '个人主账本',
+          description: '您的私有记账空间',
+          owner_id: '',
+          type: 'personal',
+          invite_code: ''
+        }
+      }
       return state.ledgers.find(l => l.ID === state.currentLedgerId)
     }
   }

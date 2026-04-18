@@ -138,3 +138,12 @@ export const ledgerApi = {
   create: (data: { name: string; description: string }) => api.post('/ledger', data),
   join: (data: { invite_code: string }) => api.post('/ledger/join', data)
 }
+
+export const adminApi = {
+  listUsers: (params: { page: number; pageSize: number }) => api.get('/admin/users', { params }),
+  updateRole: (data: { user_id: string; role: string }) => api.post('/admin/role', data),
+  resetPassword: (data: { user_id: string; password: string }) => api.post('/admin/user/password', data),
+  listInvitations: () => api.get('/invitation/list'),
+  createInvitation: (data: { role: string }) => api.post('/invitation/create', data),
+  deleteInvitation: (code: string) => api.delete(`/invitation/${code}`),
+}
