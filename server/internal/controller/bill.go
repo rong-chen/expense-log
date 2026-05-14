@@ -284,6 +284,12 @@ func (ctrl *billController) UploadImageReceipt(c *gin.Context) {
 
 			fmt.Printf("✅ 第 %d 张图最终解析出的结构体: %+v\n", index, analysis)
 
+			// 验证: 如果未识别出商户且金额为 0，视为无效识别，跳过入库
+			if analysis.Amount == 0 && analysis.Merchant == "" {
+				fmt.Printf("⚠️ 第 %d 张图: 未识别到有效商户且金额为0，判定为非账单或识别失败，跳过入库\n", index)
+				return
+			}
+
 			// 构建账单记录并存库
 			cst, _ := time.LoadLocation("Asia/Shanghai")
 			transDate, _ := time.ParseInLocation("2006-01-02 15:04:05", analysis.TransactionDate, cst)
