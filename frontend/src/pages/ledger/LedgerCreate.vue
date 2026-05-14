@@ -67,7 +67,7 @@ async function submit() {
 <style scoped>
 .page-container {
   min-height: 100vh;
-  background: var(--background);
+  background: var(--bg-base);
 }
 .content-body {
   padding: 80px 20px 20px;
@@ -97,7 +97,7 @@ async function submit() {
   padding: 14px 16px;
   border-radius: 12px;
   border: 1px solid rgba(0,0,0,0.1);
-  background: var(--surface);
+  background: var(--bg-input);
   font-size: 1rem;
   transition: all 0.2s;
   outline: none;

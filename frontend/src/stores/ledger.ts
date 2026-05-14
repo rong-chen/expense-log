@@ -22,7 +22,7 @@ export const useLedgerStore = defineStore('ledger', {
       try {
         const res: any = await ledgerApi.list()
         if (res.code === 0 && res.data) {
-          this.ledgers = res.data
+          this.ledgers = res.data.map((l: any) => ({ ...l, ID: String(l.ID) }))
           // 只有当存了一个非空 ID 且该 ID 已经在物理列表中失效时，才进行回退
           if (this.currentLedgerId !== '' && !this.ledgers.find(l => l.ID === this.currentLedgerId)) {
             if (this.ledgers.length > 0) {
@@ -44,7 +44,8 @@ export const useLedgerStore = defineStore('ledger', {
         this.loading = false
       }
     },
-    setCurrentLedger(id: string) {
+    setCurrentLedger(rawId: string | number) {
+      const id = String(rawId)
       if (id !== this.currentLedgerId) {
         this.currentLedgerId = id
         localStorage.setItem('currentLedgerId', id)

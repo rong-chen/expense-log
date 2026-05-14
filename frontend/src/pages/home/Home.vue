@@ -3,7 +3,7 @@ import { useAuthStore } from '@/stores/auth'
 import { useRouter } from 'vue-router'
 import { useLedgerStore } from '@/stores/ledger'
 import {
-  FileText, Camera, Bell, PenLine, ArrowRight, CalendarClock, ChevronDown, Check, Plus, ScanLine
+  FileText, Camera, Bell, PenLine, ArrowRight, CalendarClock, ChevronDown
 } from 'lucide-vue-next'
 import { use } from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
@@ -25,7 +25,6 @@ const router = useRouter()
 const activeTab = ref<'text' | 'chart'>('text')
 const cameraInput = ref<HTMLInputElement | null>(null)
 const isUploading = ref(false)
-const showLedgerDrawer = ref(false)
 
 const stats = ref({
   monthExpense: 0,
@@ -164,20 +163,6 @@ onMounted(async () => {
   })
 })
 
-function switchLedger(id: string) {
-  ledgerStore.setCurrentLedger(id)
-  showLedgerDrawer.value = false
-}
-
-async function copyInviteCode(code: string) {
-  try {
-    await navigator.clipboard.writeText(code)
-    toast.success('邀请码已复制到剪贴板')
-  } catch (err) {
-    toast.error('复制失败，请手动记录')
-  }
-}
-
 function openEditPage(bill: any) {
   if (bill.user_id !== auth.user?.id) {
     toast.error('这是他人记录的账单，您无权修改')
@@ -199,10 +184,10 @@ function openEditPage(bill: any) {
 
     <!-- 顶部 Header -->
     <div class="home-header">
-      <div class="header-logo" @click="showLedgerDrawer = true" style="cursor: pointer;">
+      <div class="header-logo" @click="router.push('/ledger/select')" style="cursor: pointer;">
         <img src="/favicon.png" alt="logo" class="logo-img" />
         <div class="ledger-selector">
-          <span class="ledger-name">{{ ledgerStore.currentLedger?.name || '易账' }}</span>
+          <span class="ledger-name">{{ ledgerStore.currentLedger?.name || '个人主账本' }}</span>
           <ChevronDown :size="16" class="dropdown-icon" />
         </div>
       </div>
@@ -211,40 +196,7 @@ function openEditPage(bill: any) {
       </div>
     </div>
 
-    <!-- 账本切换抽屉 (简易底盘) -->
-    <div v-if="showLedgerDrawer" class="ledger-overlay" @click="showLedgerDrawer = false">
-      <div class="ledger-drawer" @click.stop>
-        <div class="drawer-header">切换账本</div>
-        <div class="ledger-list">
-          <div 
-            v-for="l in ledgerStore.allLedgers" 
-            :key="l.ID" 
-            class="ledger-item"
-            :class="{ active: l.ID === ledgerStore.currentLedgerId }"
-            @click="switchLedger(l.ID)"
-          >
-            <div class="ledger-info">
-              <span class="ledger-item-name">{{ l.name }}</span>
-              <div style="display: flex; gap: 8px; align-items: center;">
-                <span class="ledger-item-type">{{ l.type === 'personal' ? '个人' : '共享' }}</span>
-                <span v-if="l.invite_code" class="ledger-invite-code" @click.stop="copyInviteCode(l.invite_code)">
-                  邀请码: {{ l.invite_code }} (点击复制)
-                </span>
-              </div>
-            </div>
-            <Check v-if="l.ID === ledgerStore.currentLedgerId" :size="20" class="active-icon" />
-          </div>
-        </div>
-        <div class="drawer-actions">
-          <button class="drawer-btn" @click="router.push('/ledger/create')">
-            <Plus :size="18" /> 创建账本
-          </button>
-          <button class="drawer-btn" @click="router.push('/ledger/join')">
-            <ScanLine :size="18" /> 加入账本
-          </button>
-        </div>
-      </div>
-    </div>
+
 
     <!-- 快捷操作栏 -->
     <div class="quick-actions">
@@ -601,89 +553,6 @@ function openEditPage(bill: any) {
   opacity: 0.6;
 }
 
-/* 账本抽屉样式 */
-.ledger-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.4);
-  z-index: 2000;
-  animation: fadeIn 0.2s ease-out;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-}
-.ledger-drawer {
-  background: var(--surface);
-  border-radius: 24px 24px 0 0;
-  padding: 24px 16px env(safe-area-inset-bottom);
-  animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-}
-.drawer-header {
-  font-size: 1.1rem;
-  font-weight: 600;
-  text-align: center;
-  margin-bottom: 20px;
-}
-.ledger-list {
-  max-height: 50vh;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-.ledger-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 16px;
-  background: var(--background);
-  border-radius: 16px;
-  transition: background 0.2s;
-}
-.ledger-item:active {
-  background: rgba(0, 0, 0, 0.05);
-}
-.ledger-item.active {
-  background: rgba(44, 62, 80, 0.05);
-  border: 1px solid rgba(44, 62, 80, 0.2);
-}
-.ledger-info {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-.ledger-item-name {
-  font-weight: 600;
-  font-size: 1rem;
-}
-.ledger-item-type {
-  font-size: 0.8rem;
-  color: var(--text-secondary);
-  background: rgba(0, 0, 0, 0.04);
-  padding: 2px 8px;
-  border-radius: 10px;
-  width: fit-content;
-}
-.ledger-invite-code {
-  font-size: 0.8rem;
-  color: var(--primary);
-  background: rgba(26, 188, 156, 0.1);
-  padding: 2px 8px;
-  border-radius: 10px;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-.ledger-invite-code:active {
-  background: rgba(26, 188, 156, 0.2);
-}
-.active-icon {
-  color: var(--primary);
-}
-.drawer-actions {
-  display: flex;
-  gap: 12px;
-  margin-top: 24px;
-}
 .drawer-btn {
   flex: 1;
   display: flex;
