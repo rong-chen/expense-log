@@ -111,14 +111,6 @@ export const billApi = {
   getDashboardStats: () => api.get('/bill/dashboard'),
   getBillDetail: (id: string) => api.get(`/bill/${id}`),
   getBillList: (params: { page: number; size: number; keyword?: string; category?: string; date?: string }) => api.get('/bill/list', { params }),
-  uploadImage: (file: File) => {
-    const formData = new FormData()
-    formData.append('file', file)
-    return api.post('/bill/upload', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-      timeout: 60000, // AI分析需要更长时间
-    })
-  },
   updateBillRemark: (id: string, remark: string) => api.put(`/bill/${id}/remark`, { remark }),
   updateBill: (id: string, data: any) => api.put(`/bill/${id}`, data),
   deleteBill: (id: string) => api.delete(`/bill/${id}`),

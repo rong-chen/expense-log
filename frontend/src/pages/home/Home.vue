@@ -3,7 +3,7 @@ import { useAuthStore } from '@/stores/auth'
 import { useRouter } from 'vue-router'
 import { useLedgerStore } from '@/stores/ledger'
 import {
-  FileText, Camera, Bell, PenLine, ArrowRight, CalendarClock, ChevronDown
+  FileText, Bell, PenLine, ArrowRight, CalendarClock, ChevronDown
 } from 'lucide-vue-next'
 import { use } from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
@@ -23,8 +23,6 @@ const auth = useAuthStore()
 const ledgerStore = useLedgerStore()
 const router = useRouter()
 const activeTab = ref<'text' | 'chart'>('text')
-const cameraInput = ref<HTMLInputElement | null>(null)
-const isUploading = ref(false)
 
 const stats = ref({
   monthExpense: 0,
@@ -123,33 +121,6 @@ function formatDate(dateStr: string) {
   return `${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`
 }
 
-function triggerCamera() {
-  cameraInput.value?.click()
-}
-
-function handleImageUpload(e: Event) {
-  const target = e.target as HTMLInputElement
-  if (!target.files || target.files.length === 0) return
-  
-  const file = target.files[0]
-  target.value = '' // 立即清空，允许连续触发拍照
-
-  isUploading.value = true
-  billApi.uploadImage(file).then((res: any) => {
-    if (res === 'success' || res?.code === 0) {
-      fetchAnalytics()
-      fetchRecentBills()
-    } else {
-      toast.error('识别失败: ' + (res?.msg || '未知错误'))
-    }
-  }).catch((err) => {
-    console.error('Upload failed:', err)
-    toast.error('上传失败，请检查网络后重试')
-  }).finally(() => {
-    isUploading.value = false
-  })
-}
-
 onMounted(async () => {
   if (!auth.user) auth.fetchUserInfo()
   await ledgerStore.fetchLedgers()
@@ -174,14 +145,6 @@ function openEditPage(bill: any) {
 
 <template>
   <div class="home-page">
-    <!-- 全屏上传 Loading -->
-    <div v-if="isUploading" class="global-upload-overlay">
-      <div class="spinner-container">
-        <div class="loader-spinner"></div>
-        <p>正在智能识别账单...</p>
-      </div>
-    </div>
-
     <!-- 顶部 Header -->
     <div class="home-header">
       <div class="header-logo" @click="router.push('/ledger/select')" style="cursor: pointer;">
@@ -206,13 +169,6 @@ function openEditPage(bill: any) {
         </div>
         <span class="action-label">手动记账</span>
       </div>
-      <div class="action-card card" @click="triggerCamera">
-        <div class="action-icon" style="background: rgba(230,126,34,0.12); color: #e67e22;">
-          <Camera :size="22" />
-        </div>
-        <span class="action-label">拍照识别</span>
-      </div>
-      <input type="file" ref="cameraInput" accept="image/*" @change="handleImageUpload" style="display: none" />
       <div class="action-card card" @click="router.push('/recurring')">
         <div class="action-icon" style="background: rgba(231,76,60,0.12); color: #e74c3c;">
           <CalendarClock :size="22" />
@@ -289,7 +245,7 @@ function openEditPage(bill: any) {
         </div>
         <div v-else class="empty-hint">
           <FileText :size="28" style="opacity: 0.3; margin-bottom: 8px;" />
-          <p>暂无账单记录，试试手动记账或拍照录入</p>
+          <p>暂无账单记录，试试手动记账</p>
         </div>
       </div>
     </div>
@@ -340,7 +296,7 @@ function openEditPage(bill: any) {
 /* 快捷操作栏 */
 .quick-actions {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: 12px;
   margin-bottom: 20px;
 }
@@ -477,57 +433,6 @@ function openEditPage(bill: any) {
 }
 .chart-empty p { margin: 0; font-size: 0.9rem; }
 
-/* 全局上传 Loading 遮罩层 */
-.global-upload-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  z-index: 9999;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-.dark .global-upload-overlay {
-  background: rgba(20, 18, 24, 0.85);
-}
-
-.spinner-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 16px;
-  animation: fadeIn 0.3s ease-out;
-}
-
-.spinner-container p {
-  color: var(--primary);
-  font-weight: 600;
-  font-size: 0.95rem;
-  margin: 0;
-  letter-spacing: 0.5px;
-}
-
-.loader-spinner {
-  width: 48px;
-  height: 48px;
-  border: 4px solid var(--primary-soft);
-  border-top-color: var(--primary);
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-@keyframes fadeIn {
-  from { opacity: 0; transform: scale(0.95); }
-  to { opacity: 1; transform: scale(1); }
-}
 /* 账本选择器样式 */
 .ledger-selector {
   display: flex;
