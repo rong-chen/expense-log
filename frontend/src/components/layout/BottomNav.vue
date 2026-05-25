@@ -25,11 +25,8 @@ import { Home, User, Receipt } from 'lucide-vue-next'
   bottom: 0;
   left: 0;
   right: 0;
-  background: rgba(255, 255, 255, 0.98);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-top: none;
-  box-shadow: 0 -4px 24px rgba(44, 36, 23, 0.04);
+  background: var(--bg-card);
+  border-top: 1px solid var(--border);
   display: flex;
   justify-content: space-around;
   align-items: stretch;
@@ -42,26 +39,19 @@ import { Home, User, Receipt } from 'lucide-vue-next'
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  color: #64748b;
+  color: var(--text-tertiary);
   text-decoration: none;
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   font-weight: 500;
-  gap: 3px;
+  gap: 2px;
   flex: 1;
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: color 0.2s;
 }
 .nav-item.active {
-  color: var(--primary); /* 品牌橙色 */
+  color: var(--primary);
   font-weight: 700;
-  transform: translateY(-2px); /* 选中时稍微上浮 */
 }
 .nav-item:active {
-  transform: scale(0.92);
-}
-
-/* 如果 App 切换到暗黑模式，既然用户要求不要黑色，我们给它一个非常优雅的浅银灰色而不是死黑 */
-:global(.dark) .bottom-nav {
-  background: rgba(240, 240, 243, 0.95);
-  box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.1);
+  opacity: 0.7;
 }
 </style>

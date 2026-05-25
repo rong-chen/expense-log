@@ -134,7 +134,7 @@ async function copyInviteCode(code: string) {
 .ledger-card.active {
   border-color: var(--primary);
   background: var(--primary-soft);
-  box-shadow: 0 4px 16px rgba(230, 126, 34, 0.08);
+  box-shadow: 0 4px 16px rgba(37, 99, 235, 0.08);
 }
 
 .ledger-main {
@@ -160,7 +160,7 @@ async function copyInviteCode(code: string) {
 }
 
 .ledger-icon.shared {
-  background: rgba(230, 126, 34, 0.1);
+  background: rgba(37, 99, 235, 0.1);
   color: var(--primary);
 }
 
@@ -249,7 +249,7 @@ async function copyInviteCode(code: string) {
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 2px 8px rgba(230, 126, 34, 0.3);
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
 }
 
 .arrow-icon {
@@ -280,7 +280,7 @@ async function copyInviteCode(code: string) {
 .action-btn.primary {
   background: linear-gradient(135deg, var(--primary), var(--primary-light));
   color: white;
-  box-shadow: 0 4px 12px rgba(230, 126, 34, 0.2);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
 }
 
 .action-btn.secondary {

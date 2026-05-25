@@ -135,12 +135,10 @@ async function submitBill() {
   max-width: 600px;
   margin: 0 auto;
   min-height: 100vh;
-  background: var(--bg-body);
+  background: var(--bg-base);
   display: flex;
   flex-direction: column;
 }
-
-
 
 .form-container {
   flex: 1;
@@ -149,12 +147,12 @@ async function submitBill() {
 }
 
 .form-card {
-  padding: 24px 20px;
-  border-radius: 20px;
-  margin-bottom: 30px;
+  padding: 20px;
+  border-radius: 8px;
+  margin-bottom: 24px;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 18px;
 }
 
 .form-group {
@@ -162,15 +160,15 @@ async function submitBill() {
   flex-direction: column;
 }
 .amount-group {
-  border-bottom: 1px dashed rgba(0,0,0,0.1);
-  padding-bottom: 20px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 18px;
 }
 .amount-input {
-  font-size: 2.2rem !important;
+  font-size: 2rem !important;
   font-weight: 800;
-  color: var(--primary) !important;
+  color: var(--text-primary) !important;
   height: auto !important;
-  padding: 10px 0 !important;
+  padding: 8px 0 !important;
   background: transparent !important;
   border: none !important;
   border-radius: 0 !important;
@@ -185,15 +183,15 @@ async function submitBill() {
 
 .form-control {
   width: 100%;
-  border: 1px solid rgba(0,0,0,0.08);
-  border-radius: 12px;
-  padding: 14px 16px;
-  font-size: 1rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px 14px;
+  font-size: 0.95rem;
   font-family: inherit;
-  background: #fafafa;
+  background: var(--bg-card);
   outline: none;
   color: var(--text-primary);
-  transition: all 0.2s;
+  transition: border-color 0.2s;
   -webkit-appearance: none;
   appearance: none;
   text-align: left;
@@ -206,21 +204,19 @@ input[type="datetime-local"]::-webkit-date-and-time-value {
 }
 .form-control:focus {
   border-color: var(--primary);
-  background: white;
-  box-shadow: 0 4px 12px rgba(26, 188, 156, 0.1);
 }
 
 .category-grid {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 8px;
 }
 .category-chip {
-  padding: 8px 16px;
-  border-radius: 20px;
-  border: 1.5px solid rgba(0,0,0,0.08);
-  background: #fafafa;
-  font-size: 0.9rem;
+  padding: 8px 14px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  font-size: 0.85rem;
   font-weight: 500;
   color: var(--text-secondary);
   cursor: pointer;
@@ -230,10 +226,9 @@ input[type="datetime-local"]::-webkit-date-and-time-value {
   background: var(--primary);
   color: white;
   border-color: var(--primary);
-  box-shadow: 0 4px 12px rgba(26, 188, 156, 0.25);
 }
 .category-chip:active {
-  transform: scale(0.95);
+  transform: scale(0.96);
 }
 
 .remark-textarea { resize: none; }
@@ -248,10 +243,10 @@ input[type="datetime-local"]::-webkit-date-and-time-value {
 
 .btn {
   width: 100%;
-  padding: 16px;
-  border-radius: 16px;
-  font-size: 1.05rem;
-  font-weight: 700;
+  padding: 14px;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
   cursor: pointer;
   border: none;
   transition: all 0.2s;
@@ -260,11 +255,9 @@ input[type="datetime-local"]::-webkit-date-and-time-value {
 .btn-primary {
   background: var(--primary);
   color: white;
-  box-shadow: 0 6px 20px rgba(26, 188, 156, 0.3);
 }
 .btn-primary:active {
-  transform: scale(0.98);
-  box-shadow: 0 2px 10px rgba(26, 188, 156, 0.2);
+  background: var(--primary-dark);
 }
 .btn-primary:disabled {
   opacity: 0.6;

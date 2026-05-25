@@ -29,9 +29,7 @@ function goBack() {
   left: -1px;
   right: -1px;
   height: 56px;
-  background: rgba(250, 248, 245, 0.85); /* 半透明暖白高斯模糊 */
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  background: var(--bg-card);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -39,7 +37,7 @@ function goBack() {
   padding-top: env(safe-area-inset-top);
   box-sizing: content-box;
   z-index: 1000;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  border-bottom: 1px solid var(--border);
 }
 .back-btn {
   background: none;
@@ -52,8 +50,8 @@ function goBack() {
   align-items: center;
 }
 .title {
-  font-size: 1.15rem;
-  font-weight: 600;
+  font-size: 1.05rem;
+  font-weight: 700;
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
@@ -61,13 +59,8 @@ function goBack() {
   color: var(--text-primary);
 }
 .right-slot {
-  min-width: 44px; /* 占位，保持标题居中 */
+  min-width: 44px;
   display: flex;
   justify-content: flex-end;
-}
-/* 同样拒绝死黑，跟随全站浅色/银灰高级质感 */
-:global(.dark) .top-nav-bar {
-  background: rgba(240, 240, 243, 0.95);
-  border-bottom-color: rgba(0, 0, 0, 0.05); /* 顶部不需要特别显眼的浅色白线 */
 }
 </style>

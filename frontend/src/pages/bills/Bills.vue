@@ -192,12 +192,11 @@ function openEditPage(bill: any) {
   padding-bottom: 24px;
 }
 
-/* 过滤工具栏 */
 .filter-bar {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
 }
 
 .search-box {
@@ -207,45 +206,42 @@ function openEditPage(bill: any) {
 }
 .search-icon {
   position: absolute;
-  left: 14px;
-  color: var(--text-muted);
+  left: 12px;
+  color: var(--text-tertiary);
 }
 .search-input {
   width: 100%;
-  background: white;
-  border: 1px solid rgba(0,0,0,0.06);
-  padding: 14px 14px 14px 40px;
-  border-radius: 12px;
-  font-size: 0.95rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  padding: 12px 12px 12px 38px;
+  border-radius: 8px;
+  font-size: 0.9rem;
   outline: none;
-  transition: all 0.2s;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.01);
+  transition: border-color 0.2s;
 }
 .search-input:focus {
   border-color: var(--primary);
-  box-shadow: 0 4px 12px rgba(26, 188, 156, 0.1);
 }
 
 .filter-group {
   display: flex;
-  gap: 12px;
+  gap: 10px;
 }
 .filter-select, .filter-date {
   flex: 1;
-  background: white;
-  border: 1px solid rgba(0,0,0,0.06);
-  padding: 12px;
-  border-radius: 12px;
-  font-size: 0.9rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 0.85rem;
   color: var(--text-primary);
   outline: none;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.01);
 }
 
 .list-summary {
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   color: var(--text-secondary);
-  margin-bottom: 16px;
+  margin-bottom: 12px;
   padding: 0 4px;
 }
 .list-summary strong {
@@ -254,35 +250,31 @@ function openEditPage(bill: any) {
   margin: 0 2px;
 }
 
-/* 账单卡片核心布局：解决长文本换行痛点 */
 .bill-list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
 }
 
 .bill-card {
   display: flex;
   align-items: center;
-  padding: 16px;
-  border-radius: 16px;
-  transition: active 0.2s;
+  padding: 14px;
+  border-radius: 8px;
 }
 .bill-card:active {
-  transform: scale(0.98);
   background: var(--bg-card-hover);
 }
 
 .bill-info {
   flex: 1;
-  min-width: 0; /* CSS Flex 文本截断核心：允许子元素宽度收缩到比内容还小 */
+  min-width: 0;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: 4px;
+  gap: 3px;
 }
 
-/* 这个工具类至关重要，解决无限溢出 */
 .text-truncate {
   white-space: nowrap;
   overflow: hidden;
@@ -290,7 +282,7 @@ function openEditPage(bill: any) {
 }
 
 .bill-merchant {
-  font-size: 1rem;
+  font-size: 0.95rem;
   font-weight: 600;
   color: var(--text-primary);
   line-height: 1.2;
@@ -301,7 +293,7 @@ function openEditPage(bill: any) {
   color: var(--text-secondary);
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 }
 
 .meta-item {
@@ -330,8 +322,8 @@ function openEditPage(bill: any) {
 }
 
 .bill-amount {
-  font-size: 1.15rem;
-  font-weight: 800;
+  font-size: 1.05rem;
+  font-weight: 700;
   color: var(--text-primary);
   margin-left: 12px;
   flex-shrink: 0;
@@ -340,19 +332,18 @@ function openEditPage(bill: any) {
   word-break: break-all;
 }
 .bill-amount.refund {
-  color: #27ae60;
+  color: var(--success);
   text-decoration: line-through;
   opacity: 0.6;
 }
 
-/* 骨架屏 */
-.skeleton-list { display: flex; flex-direction: column; gap: 12px; }
-.skeleton-item { display: flex; align-items: center; padding: 16px; border-radius: 16px; }
+.skeleton-list { display: flex; flex-direction: column; gap: 8px; }
+.skeleton-item { display: flex; align-items: center; padding: 14px; border-radius: 8px; }
 .skeleton-main { flex: 1; display: flex; flex-direction: column; gap: 8px; }
-.skeleton-line { height: 14px; border-radius: 7px; }
+.skeleton-line { height: 14px; border-radius: 6px; }
 .w-100 { width: 100%; }
 .w-60 { width: 60%; }
-.skeleton-amount { width: 60px; height: 20px; border-radius: 10px; margin-left: 12px; flex-shrink: 0; }
+.skeleton-amount { width: 60px; height: 20px; border-radius: 6px; margin-left: 12px; flex-shrink: 0; }
 
 .empty-state {
   display: flex;
@@ -363,6 +354,6 @@ function openEditPage(bill: any) {
   color: var(--text-secondary);
   text-align: center;
 }
-.empty-state h3 { font-size: 1.15rem; margin-bottom: 8px; }
-.empty-state p { font-size: 0.9rem; max-width: 240px; }
+.empty-state h3 { font-size: 1.1rem; margin-bottom: 8px; }
+.empty-state p { font-size: 0.85rem; max-width: 240px; }
 </style>

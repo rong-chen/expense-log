@@ -39,16 +39,16 @@ const trendOption = ref({
   tooltip: { trigger: 'axis', backgroundColor: 'rgba(255,255,255,0.9)' },
   grid: { left: '4%', right: '5%', bottom: '15%', containLabel: true },
   xAxis: { type: 'category', data: [] as string[], axisLine: { lineStyle: { color: '#bdc3c7' } }, boundaryGap: false },
-  yAxis: { type: 'value', splitLine: { lineStyle: { type: 'dashed', color: '#f0ebe4' } } },
+  yAxis: { type: 'value', splitLine: { lineStyle: { type: 'dashed', color: '#E2E8F0' } } },
   series: [{
     name: '支出', type: 'line', smooth: true, showSymbol: false,
     areaStyle: {
       color: {
         type: 'linear', x: 0, y: 0, x2: 0, y2: 1,
-        colorStops: [{ offset: 0, color: 'rgba(230,126,34,0.4)' }, { offset: 1, color: 'rgba(230,126,34,0.05)' }]
+        colorStops: [{ offset: 0, color: 'rgba(37, 99, 235, 0.3)' }, { offset: 1, color: 'rgba(37, 99, 235, 0.02)' }]
       }
     },
-    itemStyle: { color: '#e67e22' },
+    itemStyle: { color: '#2563EB' },
     data: [] as number[]
   }]
 })
@@ -164,13 +164,13 @@ function openEditPage(bill: any) {
     <!-- 快捷操作栏 -->
     <div class="quick-actions">
       <div class="action-card card" @click="router.push('/bill/add')">
-        <div class="action-icon" style="background: rgba(26,188,156,0.12); color: var(--primary);">
+        <div class="action-icon" style="background: rgba(37,99,235,0.08); color: var(--primary);">
           <PenLine :size="22" />
         </div>
         <span class="action-label">手动记账</span>
       </div>
       <div class="action-card card" @click="router.push('/recurring')">
-        <div class="action-icon" style="background: rgba(231,76,60,0.12); color: #e74c3c;">
+        <div class="action-icon" style="background: rgba(217,119,6,0.08); color: #D97706;">
           <CalendarClock :size="22" />
         </div>
         <span class="action-label">周期账单</span>
@@ -283,15 +283,15 @@ function openEditPage(bill: any) {
 /* Header */
 .home-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
 .header-logo { display: flex; align-items: center; gap: 8px; font-size: 1.4rem; font-weight: 800; color: var(--primary); letter-spacing: -0.5px; }
-.logo-img { width: 28px; height: 28px; border-radius: 6px; box-shadow: 0 4px 12px rgba(230,126,34,0.2); }
+.logo-img { width: 28px; height: 28px; border-radius: 6px; }
 .header-actions { display: flex; gap: 8px; }
 .header-icon-btn {
-  width: 40px; height: 40px; border-radius: 12px; border: none;
-  background: white; color: var(--text-secondary);
+  width: 36px; height: 36px; border-radius: 8px; border: 1px solid var(--border);
+  background: var(--bg-card); color: var(--text-secondary);
   display: flex; justify-content: center; align-items: center;
-  cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.04); transition: all 0.2s;
+  cursor: pointer; transition: all 0.2s;
 }
-.header-icon-btn:active { transform: scale(0.92); background: var(--primary-soft); color: var(--primary); }
+.header-icon-btn:active { background: var(--primary-soft); color: var(--primary); }
 
 /* 快捷操作栏 */
 .quick-actions {
@@ -313,9 +313,9 @@ function openEditPage(bill: any) {
   transform: scale(0.96);
 }
 .action-icon {
-  width: 48px;
-  height: 48px;
-  border-radius: 16px;
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -330,7 +330,7 @@ function openEditPage(bill: any) {
 .tab-switch {
   display: flex;
   background: rgba(0,0,0,0.04);
-  border-radius: 12px;
+  border-radius: 8px;
   padding: 3px;
   margin-bottom: 20px;
 }
@@ -339,17 +339,16 @@ function openEditPage(bill: any) {
   padding: 10px 0;
   border: none;
   background: transparent;
-  border-radius: 10px;
-  font-size: 0.95rem;
+  border-radius: 6px;
+  font-size: 0.9rem;
   font-weight: 600;
   color: var(--text-secondary);
   cursor: pointer;
-  transition: all 0.25s;
+  transition: all 0.2s;
 }
 .tab-btn.active {
-  background: white;
+  background: var(--bg-card);
   color: var(--primary);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
 }
 
 /* 文字统计 */
@@ -366,8 +365,8 @@ function openEditPage(bill: any) {
   padding: 3px 10px;
   border-radius: 20px;
 }
-.compare-badge.up { background: rgba(231,76,60,0.1); color: #e74c3c; }
-.compare-badge.down { background: rgba(39,174,96,0.1); color: #27ae60; }
+.compare-badge.up { background: rgba(220,38,38,0.08); color: #DC2626; }
+.compare-badge.down { background: rgba(22,163,74,0.08); color: #16A34A; }
 .compare-badge.neutral { background: rgba(0,0,0,0.05); color: var(--text-secondary); }
 
 /* 最近账单 */
@@ -408,7 +407,7 @@ function openEditPage(bill: any) {
   margin-left: 16px;
 }
 .recent-amount.refund {
-  color: #27ae60;
+  color: var(--success);
   text-decoration: line-through;
   opacity: 0.6;
 }

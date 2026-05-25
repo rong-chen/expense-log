@@ -200,10 +200,10 @@ onMounted(() => {
 
 .secret-alert {
   background: white;
-  border: 1px solid rgba(26, 188, 156, 0.4);
+  border: 1px solid rgba(37, 99, 235, 0.4);
   border-radius: 16px;
   padding: 24px;
-  box-shadow: 0 8px 24px rgba(26, 188, 156, 0.1);
+  box-shadow: 0 8px 24px rgba(37, 99, 235, 0.1);
 }
 .alert-header {
   display: flex;
@@ -216,7 +216,7 @@ onMounted(() => {
 }
 .warning-text {
   font-size: 0.9rem;
-  color: #e67e22;
+  color: #2563EB;
   margin-bottom: 20px;
   font-weight: 500;
 }

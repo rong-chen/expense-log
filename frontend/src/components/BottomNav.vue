@@ -95,7 +95,7 @@ const navItems = [
   border-radius: 28px;
   background: linear-gradient(135deg, var(--primary), var(--primary-light));
   border: 4px solid var(--bg-card);
-  box-shadow: 0 8px 20px rgba(230, 126, 34, 0.35);
+  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.35);
   display: flex;
   align-items: center;
   justify-content: center;

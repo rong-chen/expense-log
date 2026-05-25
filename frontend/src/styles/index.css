@@ -1,53 +1,51 @@
-/* ===== 设计系统: 暖金色主题 ===== */
+/* ===== 设计系统: 蓝色主题 ===== */
 
 :root {
-  /* --- 主色 (暖金/琥珀) --- */
-  --primary: #e67e22;
-  --primary-light: #f39c12;
-  --primary-dark: #d35400;
-  --primary-soft: rgba(230, 126, 34, 0.12);
+  /* --- 主色 (蓝色) --- */
+  --primary: #2563EB;
+  --primary-light: #DBEAFE;
+  --primary-dark: #1D4ED8;
+  --primary-soft: rgba(37, 99, 235, 0.08);
 
   /* --- 功能色 --- */
-  --success: #27ae60;
-  --success-soft: rgba(39, 174, 96, 0.12);
-  --danger: #e74c3c;
-  --danger-soft: rgba(231, 76, 60, 0.12);
-  --warning: #f1c40f;
-  --info: #1abc9c;
+  --success: #16A34A;
+  --success-soft: rgba(22, 163, 74, 0.08);
+  --danger: #DC2626;
+  --danger-soft: rgba(220, 38, 38, 0.08);
+  --warning: #D97706;
+  --info: #0891B2;
 
   /* --- 浅色主题 --- */
-  --bg-base: #faf8f5;
-  --bg-card: #ffffff;
-  --bg-card-hover: #fef9f3;
-  --bg-sidebar: #fdf6ee;
-  --bg-input: #f5f1eb;
-  --border: #e8e0d6;
-  --border-light: #f0ebe4;
-  --text-primary: #2c2417;
-  --text-secondary: #8a7d6e;
-  --text-tertiary: #b5a898;
-  --shadow-sm: 0 1px 3px rgba(44, 36, 23, 0.06);
-  --shadow-md: 0 4px 16px rgba(44, 36, 23, 0.08);
-  --shadow-lg: 0 8px 32px rgba(44, 36, 23, 0.12);
-  --shadow-glow: 0 0 20px rgba(230, 126, 34, 0.15);
+  --bg-base: #F8FAFC;
+  --bg-card: #FFFFFF;
+  --bg-card-hover: #F1F5F9;
+  --bg-sidebar: #F1F5F9;
+  --bg-input: #F8FAFC;
+  --border: #E2E8F0;
+  --border-light: #F1F5F9;
+  --text-primary: #0F172A;
+  --text-secondary: #64748B;
+  --text-tertiary: #94A3B8;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.08);
 }
 
 /* --- 深色主题 --- */
 .dark {
-  --bg-base: #141218;
-  --bg-card: #1e1c24;
-  --bg-card-hover: #262430;
-  --bg-sidebar: #1a1820;
-  --bg-input: #2a2832;
-  --border: #332f3d;
-  --border-light: #2a2832;
-  --text-primary: #f0ebe4;
-  --text-secondary: #9a94a6;
-  --text-tertiary: #6b6578;
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.2);
-  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.3);
-  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.4);
-  --shadow-glow: 0 0 24px rgba(230, 126, 34, 0.2);
+  --bg-base: #0F172A;
+  --bg-card: #1E293B;
+  --bg-card-hover: #334155;
+  --bg-sidebar: #1E293B;
+  --bg-input: #334155;
+  --border: #334155;
+  --border-light: #1E293B;
+  --text-primary: #F1F5F9;
+  --text-secondary: #94A3B8;
+  --text-tertiary: #64748B;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.5);
 }
 
 /* ===== 全局重置 ===== */
@@ -136,11 +134,11 @@ a:hover {
   gap: 8px;
   padding: 10px 24px;
   border: none;
-  border-radius: 12px;
+  border-radius: 8px;
   font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.25s ease;
+  transition: all 0.2s ease;
   font-family: inherit;
 }
 
@@ -149,14 +147,12 @@ a:hover {
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, var(--primary), var(--primary-light));
+  background: var(--primary);
   color: #fff;
-  box-shadow: 0 4px 12px rgba(230, 126, 34, 0.3);
 }
 
 .btn-primary:hover {
-  box-shadow: 0 6px 20px rgba(230, 126, 34, 0.45);
-  transform: translateY(-1px);
+  background: var(--primary-dark);
 }
 
 .btn-secondary {
@@ -197,7 +193,7 @@ a:hover {
 .btn-lg {
   padding: 14px 32px;
   font-size: 1rem;
-  border-radius: 14px;
+  border-radius: 8px;
 }
 
 /* 输入框 */
@@ -215,9 +211,9 @@ a:hover {
 
 .input {
   padding: 12px 16px;
-  border: 1.5px solid var(--border);
-  border-radius: 12px;
-  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-card);
   color: var(--text-primary);
   font-size: 0.95rem;
   font-family: inherit;
@@ -227,7 +223,6 @@ a:hover {
 
 .input:focus {
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px var(--primary-soft);
   background: var(--bg-card);
 }
 
@@ -238,15 +233,14 @@ a:hover {
 /* 卡片 */
 .card {
   background: var(--bg-card);
-  border: 1px solid var(--border-light);
-  border-radius: 16px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
   padding: 24px;
-  box-shadow: var(--shadow-sm);
-  transition: all 0.25s ease;
+  transition: all 0.2s ease;
 }
 
 .card:hover {
-  box-shadow: var(--shadow-md);
+  border-color: var(--primary-soft);
 }
 
 .card-glass {
@@ -354,7 +348,7 @@ a:hover {
   background: linear-gradient(90deg, var(--bg-input) 25%, var(--border-light) 50%, var(--bg-input) 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
-  border-radius: 8px;
+  border-radius: 6px;
 }
 
 /* ===== 响应式 ===== */

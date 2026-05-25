@@ -89,7 +89,7 @@ function close() {
 .icon-box {
   width: 32px;
   height: 32px;
-  background: rgba(230, 126, 34, 0.1);
+  background: rgba(37, 99, 235, 0.1);
   color: var(--primary);
   border-radius: 50%;
   display: flex;

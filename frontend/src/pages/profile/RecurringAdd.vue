@@ -233,7 +233,7 @@ onMounted(() => {
 .form-control:focus {
   border-color: var(--primary);
   background: white;
-  box-shadow: 0 4px 12px rgba(26, 188, 156, 0.1);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.1);
 }
 
 .category-grid {
@@ -256,7 +256,7 @@ onMounted(() => {
   background: var(--primary);
   color: white;
   border-color: var(--primary);
-  box-shadow: 0 4px 12px rgba(26, 188, 156, 0.25);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
 }
 .category-chip:active {
   transform: scale(0.95);
@@ -286,11 +286,11 @@ onMounted(() => {
 .btn-primary {
   background: var(--primary);
   color: white;
-  box-shadow: 0 6px 20px rgba(26, 188, 156, 0.3);
+  box-shadow: 0 6px 20px rgba(37, 99, 235, 0.3);
 }
 .btn-primary:active {
   transform: scale(0.98);
-  box-shadow: 0 2px 10px rgba(26, 188, 156, 0.2);
+  box-shadow: 0 2px 10px rgba(37, 99, 235, 0.2);
 }
 .btn-primary:disabled {
   opacity: 0.6;

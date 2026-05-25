@@ -46,7 +46,7 @@ onMounted(() => {
     <div class="menu-list">
 
       <div class="menu-item" v-if="auth.user?.role === 'admin'" @click="router.push('/admin')">
-        <div class="menu-icon" style="background: rgba(230, 126, 34, 0.12); color: #e67e22">
+        <div class="menu-icon" style="background: rgba(217, 119, 6, 0.08); color: #D97706">
           <ShieldCheck :size="20" />
         </div>
         <div class="menu-content">
@@ -56,7 +56,7 @@ onMounted(() => {
       </div>
 
       <div class="menu-item" @click="router.push('/ukey')">
-        <div class="menu-icon" style="background: rgba(41, 128, 185, 0.12); color: var(--primary)">
+        <div class="menu-icon" style="background: rgba(37, 99, 235, 0.08); color: var(--primary)">
           <Settings :size="20" />
         </div>
         <div class="menu-content">
@@ -66,7 +66,7 @@ onMounted(() => {
       </div>
 
       <div class="menu-item" @click="router.push('/recurring')">
-        <div class="menu-icon" style="background: rgba(155, 89, 182, 0.12); color: #9b59b6">
+        <div class="menu-icon" style="background: rgba(124, 58, 237, 0.08); color: #7C3AED">
           <CalendarClock :size="20" />
         </div>
         <div class="menu-content">
@@ -76,7 +76,7 @@ onMounted(() => {
       </div>
 
       <div class="menu-item" @click="router.push('/tags')">
-        <div class="menu-icon" style="background: rgba(52, 152, 219, 0.12); color: #3498db">
+        <div class="menu-icon" style="background: rgba(8, 145, 178, 0.08); color: #0891B2">
           <Tag :size="20" />
         </div>
         <div class="menu-content">
@@ -86,7 +86,7 @@ onMounted(() => {
       </div>
       
       <div class="menu-item" @click="router.push('/password')">
-        <div class="menu-icon" style="background: rgba(26, 188, 156, 0.12); color: var(--info)">
+        <div class="menu-icon" style="background: rgba(100, 116, 139, 0.08); color: #64748B">
           <Lock :size="20" />
         </div>
         <div class="menu-content">
@@ -116,108 +116,104 @@ onMounted(() => {
 .user-card {
   display: flex;
   align-items: center;
-  background: white;
-  padding: 24px;
-  border-radius: 16px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
-  margin-bottom: 24px;
+  background: var(--bg-card);
+  padding: 20px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  margin-bottom: 16px;
 }
 .avatar {
-  width: 64px;
-  height: 64px;
+  width: 52px;
+  height: 52px;
   border-radius: 50%;
   background: var(--primary);
   color: white;
   display: flex;
   justify-content: center;
   align-items: center;
-  font-size: 2.2rem;
+  font-size: 1.8rem;
   font-weight: 600;
-  margin-right: 16px;
-  box-shadow: 0 4px 12px rgba(230, 126, 34, 0.2);
+  margin-right: 14px;
 }
 .user-info h2 {
-  font-size: 1.25rem;
+  font-size: 1.1rem;
   font-weight: 700;
-  margin: 0 0 6px 0;
+  margin: 0 0 4px 0;
   color: var(--text-primary);
 }
 .user-info p {
   color: var(--text-secondary);
   margin: 0;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
 }
 
 .menu-list {
-  background: white;
-  border-radius: 16px;
+  background: var(--bg-card);
+  border-radius: 8px;
+  border: 1px solid var(--border);
   overflow: hidden;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
-  margin-bottom: 24px;
+  margin-bottom: 16px;
 }
 .menu-item {
   display: flex;
   align-items: center;
-  padding: 16px;
+  padding: 14px 16px;
   cursor: pointer;
 }
 .menu-item:active {
-  background: rgba(0, 0, 0, 0.02);
+  background: var(--bg-base);
 }
 .menu-item:not(:last-child) .menu-content {
-  border-bottom: 1px solid rgba(0,0,0,0.05);
+  border-bottom: 1px solid var(--border-light);
 }
 .menu-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: 12px;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
   display: flex;
   justify-content: center;
   align-items: center;
-  margin-right: 16px;
+  margin-right: 14px;
 }
 .menu-content {
   flex: 1;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16px 0;
-  margin: -16px 0;
+  padding: 14px 0;
+  margin: -14px 0;
   font-weight: 500;
   color: var(--text-primary);
-  font-size: 1.05rem;
+  font-size: 0.95rem;
 }
 .chevron {
-  color: var(--text-muted);
+  color: var(--text-tertiary);
 }
 
 .logout-btn {
   width: 100%;
-  background: white;
+  background: var(--bg-card);
   color: var(--danger);
-  border: none;
-  padding: 18px;
-  border-radius: 16px;
-  font-size: 1.05rem;
+  border: 1px solid var(--border);
+  padding: 14px;
+  border-radius: 8px;
+  font-size: 0.95rem;
   font-weight: 600;
   display: flex;
   justify-content: center;
   align-items: center;
   gap: 8px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
   cursor: pointer;
-  transition: transform 0.1s;
 }
 .logout-btn:active {
-  transform: scale(0.98);
+  background: var(--danger-soft);
 }
 
 .env-indicator {
   text-align: center;
   font-size: 0.75rem;
-  color: var(--text-tertiary, #95a5a6);
+  color: var(--text-tertiary);
   margin-top: 32px;
   padding-bottom: 12px;
-  opacity: 0.8;
 }
 </style>

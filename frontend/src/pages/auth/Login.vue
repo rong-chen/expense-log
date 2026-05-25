@@ -41,10 +41,6 @@ async function handleLogin() {
 
 <template>
   <div class="page-container">
-    <!-- 背景几何装饰 -->
-    <div class="bg-shape shape-1"></div>
-    <div class="bg-shape shape-2"></div>
-    
     <div class="content-wrapper">
       <!-- 品牌头部 (左对齐，更精干) -->
       <div class="header">
@@ -113,30 +109,6 @@ async function handleLogin() {
   background-color: var(--bg-base);
   display: flex;
   flex-direction: column;
-  position: relative;
-  overflow: hidden;
-}
-
-/* 几何背景图 */
-.bg-shape {
-  position: absolute;
-  border-radius: 50%;
-  pointer-events: none;
-  z-index: 0;
-}
-.shape-1 {
-  width: 600px;
-  height: 600px;
-  background: radial-gradient(circle, rgba(230,126,34,0.06) 0%, rgba(230,126,34,0) 70%);
-  top: -200px;
-  right: -250px;
-}
-.shape-2 {
-  width: 450px;
-  height: 450px;
-  background: radial-gradient(circle, rgba(230,126,34,0.04) 0%, rgba(230,126,34,0) 70%);
-  bottom: -100px;
-  left: -200px;
 }
 
 .content-wrapper {
@@ -146,28 +118,24 @@ async function handleLogin() {
   justify-content: flex-start;
   align-items: center;
   padding: calc(4vh + env(safe-area-inset-top)) 24px calc(24px + env(safe-area-inset-bottom));
-  position: relative;
-  z-index: 1;
   max-width: 460px;
   margin: 0 auto;
   width: 100%;
 }
 
-/* 头部信息 */
 .header {
   display: flex;
   align-items: center;
   gap: 16px;
   width: 100%;
   margin-bottom: 32px;
-  padding-left: 8px; /* 轻微缩进对齐卡片内容 */
+  padding-left: 8px;
 }
 .logo-box {
   width: 48px;
   height: 48px;
-  border-radius: 12px;
+  border-radius: 8px;
   overflow: hidden;
-  box-shadow: 0 8px 16px rgba(230, 126, 34, 0.2); /* 易账主题橙色光晕 */
   flex-shrink: 0;
 }
 .logo-box img {
@@ -179,97 +147,85 @@ async function handleLogin() {
 .title {
   font-size: 26px;
   font-weight: 800;
-  color: #1a1e23;
+  color: var(--primary);
   margin: 0 0 2px;
-  letter-spacing: 0.5px;
 }
 .subtitle {
   font-size: 14px;
-  color: #64748b;
+  color: var(--text-secondary);
   margin: 0;
 }
 
-/* 核心卡片 */
 .auth-card {
-  background: white;
+  background: var(--bg-card);
   width: 100%;
-  border-radius: 24px;
+  border-radius: 8px;
   padding: 32px 28px;
-  box-shadow: 0 16px 40px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.02);
-  border: 1px solid rgba(255,255,255,0.8);
+  border: 1px solid var(--border);
 }
 .card-title {
   font-size: 20px;
   font-weight: 700;
-  color: #0f172a;
+  color: var(--text-primary);
   margin: 0 0 28px;
 }
 
-/* 表单输入线 */
 .form {
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 20px;
 }
 .input-line {
   display: flex;
-  align-items: center;
-  border-bottom: 1.5px solid #e2e8f0;
-  padding-bottom: 12px;
-  transition: border-color 0.2s;
-}
-.input-line:focus-within {
-  border-bottom-color: var(--primary);
+  flex-direction: column;
+  gap: 6px;
 }
 .input-line label {
-  width: 66px;
-  font-size: 15px;
+  font-size: 13px;
   font-weight: 600;
-  color: #334155;
-  flex-shrink: 0;
-  display: inline-block;
-  text-align: justify;
-  text-align-last: justify; /* Aligns text cleanly */
+  color: var(--text-primary);
 }
 .input-line input {
-  flex: 1;
-  border: none;
-  background: transparent;
-  padding: 0 8px;
-  font-size: 16px;
-  color: #0f172a;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-card);
+  padding: 12px 14px;
+  font-size: 14px;
+  color: var(--text-primary);
   outline: none;
+  transition: border-color 0.2s;
   -webkit-appearance: none;
   appearance: none;
 }
+.input-line input:focus {
+  border-color: var(--primary);
+}
 .input-line input::placeholder {
-  color: #94a3b8;
-  font-size: 15px;
+  color: var(--text-tertiary);
+  font-size: 14px;
 }
 
-/* 错误提示 */
 .error-wrap {
   display: flex;
   align-items: center;
   gap: 6px;
-  color: #ef4444;
+  color: var(--danger);
   font-size: 13px;
-  background: #fef2f2;
+  background: var(--danger-soft);
   padding: 10px 14px;
-  border-radius: 8px;
-  margin-top: -8px;
+  border-radius: 6px;
+  margin-top: -4px;
 }
 
-/* 按钮 */
 .submit-btn {
   background: var(--primary);
   color: white;
   border: none;
-  border-radius: 12px;
-  padding: 16px;
-  font-size: 16px;
+  border-radius: 8px;
+  padding: 14px;
+  font-size: 15px;
   font-weight: 600;
-  margin-top: 12px;
+  margin-top: 8px;
   cursor: pointer;
   transition: all 0.2s;
   display: flex;
@@ -277,15 +233,12 @@ async function handleLogin() {
   align-items: center;
   position: relative;
   overflow: hidden;
-  box-shadow: 0 4px 12px rgba(230, 126, 34, 0.2);
 }
 .submit-btn:active {
-  transform: scale(0.98);
-  background: #d35400; /* Darker orange */
-  box-shadow: 0 2px 6px rgba(230, 126, 34, 0.15);
+  background: var(--primary-dark);
 }
 .submit-btn:disabled {
-  opacity: 0.8;
+  opacity: 0.7;
   cursor: not-allowed;
 }
 .submit-btn.is-loading .btn-text {
@@ -309,34 +262,27 @@ async function handleLogin() {
   to { transform: rotate(360deg); }
 }
 
-/* 卡片底部 */
 .card-footer {
   margin-top: 24px;
   text-align: center;
   font-size: 14px;
 }
 .text-mute {
-  color: #94a3b8;
+  color: var(--text-secondary);
 }
 .text-link {
   color: var(--primary);
   font-weight: 600;
   text-decoration: none;
   margin-left: 2px;
-  transition: opacity 0.2s;
-}
-.text-link:active {
-  opacity: 0.7;
 }
 
-/* 全页底部 */
 .bottom-links {
   margin-top: 40px;
   text-align: center;
 }
 .safe-text {
   font-size: 12px;
-  color: #cbd5e1;
-  letter-spacing: 0.5px;
+  color: var(--text-tertiary);
 }
 </style>

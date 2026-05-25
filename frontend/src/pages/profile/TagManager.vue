@@ -234,7 +234,7 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 6px 20px rgba(26, 188, 156, 0.4);
+  box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4);
   cursor: pointer;
   transition: all 0.2s;
 }
@@ -298,7 +298,7 @@ onUnmounted(() => {
 .form-control:focus {
   border-color: var(--primary);
   background: white;
-  box-shadow: 0 4px 12px rgba(26, 188, 156, 0.1);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.1);
 }
 
 .color-picker {

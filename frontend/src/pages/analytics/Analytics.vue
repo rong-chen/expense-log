@@ -28,21 +28,21 @@ const hasCategoryData = ref(false)
 const trendOption = ref({
   tooltip: { trigger: 'axis', backgroundColor: 'rgba(255,255,255,0.9)' },
   grid: { left: '4%', right: '5%', bottom: '15%', containLabel: true },
-  xAxis: { type: 'category', data: [], axisLine: { lineStyle: { color: '#bdc3c7' } }, boundaryGap: false },
-  yAxis: { type: 'value', splitLine: { lineStyle: { type: 'dashed', color: '#f0ebe4' } } },
+  xAxis: { type: 'category', data: [], axisLine: { lineStyle: { color: '#94A3B8' } }, boundaryGap: false },
+  yAxis: { type: 'value', splitLine: { lineStyle: { type: 'dashed', color: '#E2E8F0' } } },
   series: [
-    { 
-      name: '支出', 
-      type: 'line', 
+    {
+      name: '支出',
+      type: 'line',
       smooth: true,
       showSymbol: false,
       areaStyle: {
         color: {
           type: 'linear', x: 0, y: 0, x2: 0, y2: 1,
-          colorStops: [{ offset: 0, color: 'rgba(230, 126, 34, 0.4)' }, { offset: 1, color: 'rgba(230, 126, 34, 0.05)' }]
+          colorStops: [{ offset: 0, color: 'rgba(37, 99, 235, 0.3)' }, { offset: 1, color: 'rgba(37, 99, 235, 0.02)' }]
         }
       },
-      itemStyle: { color: '#e67e22' },
+      itemStyle: { color: '#2563EB' },
       data: []
     }
   ]

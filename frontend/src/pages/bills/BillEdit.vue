@@ -246,8 +246,6 @@ async function confirmDelete() {
   flex-direction: column;
 }
 
-
-
 .form-container {
   flex: 1;
   display: flex;
@@ -255,12 +253,12 @@ async function confirmDelete() {
 }
 
 .form-card {
-  padding: 24px 20px;
-  border-radius: 20px;
-  margin-bottom: 30px;
+  padding: 20px;
+  border-radius: 8px;
+  margin-bottom: 24px;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 18px;
 }
 
 .form-group {
@@ -268,15 +266,15 @@ async function confirmDelete() {
   flex-direction: column;
 }
 .amount-group {
-  border-bottom: 1px dashed rgba(0,0,0,0.1);
-  padding-bottom: 20px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 18px;
 }
 .amount-input {
-  font-size: 2.2rem !important;
+  font-size: 2rem !important;
   font-weight: 800;
-  color: var(--primary) !important;
+  color: var(--text-primary) !important;
   height: auto !important;
-  padding: 10px 0 !important;
+  padding: 8px 0 !important;
   background: transparent !important;
   border: none !important;
   border-radius: 0 !important;
@@ -291,28 +289,26 @@ async function confirmDelete() {
 
 .form-control {
   width: 100%;
-  border: 1px solid rgba(0,0,0,0.08);
-  border-radius: 12px;
-  padding: 14px 16px;
-  font-size: 1rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px 14px;
+  font-size: 0.95rem;
   font-family: inherit;
-  background: #fafafa;
+  background: var(--bg-card);
   outline: none;
   color: var(--text-primary);
-  transition: all 0.2s;
+  transition: border-color 0.2s;
   -webkit-appearance: none;
   text-align: left;
 }
 input[type="datetime-local"] {
   text-align: left !important;
-  /* 不要加 display: block/flex，破坏原生控件宽度结算 */
 }
 input[type="datetime-local"]::-webkit-datetime-edit {
   text-align: left !important;
   padding: 0 !important;
 }
 input[type="datetime-local"]::-webkit-date-and-time-value {
-  /* iOS 15+ 特供原生时间文字层强制左对齐 */
   text-align: left !important;
   justify-content: flex-start !important;
 }
@@ -324,8 +320,6 @@ input[type="datetime-local"]::-webkit-datetime-edit-fields-wrapper {
 }
 .form-control:focus {
   border-color: var(--primary);
-  background: white;
-  box-shadow: 0 4px 12px rgba(26, 188, 156, 0.1);
 }
 
 .remark-textarea {
@@ -338,20 +332,17 @@ input[type="datetime-local"]::-webkit-datetime-edit-fields-wrapper {
   gap: 8px;
 }
 .tag-chip {
-  padding: 6px 14px;
-  border-radius: 20px;
-  border: 1.5px solid;
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: 1px solid;
   font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
   background: transparent;
 }
-.tag-chip.active {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-}
 .tag-chip:active {
-  transform: scale(0.95);
+  transform: scale(0.96);
 }
 .tag-empty-hint {
   font-size: 0.85rem;
@@ -362,17 +353,17 @@ input[type="datetime-local"]::-webkit-datetime-edit-fields-wrapper {
 .bottom-actions {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 12px;
   padding-bottom: calc(24px + env(safe-area-inset-bottom));
   margin-top: auto;
 }
 
 .btn {
   width: 100%;
-  padding: 16px;
-  border-radius: 16px;
-  font-size: 1.05rem;
-  font-weight: 700;
+  padding: 14px;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
   cursor: pointer;
   border: none;
   transition: all 0.2s;
@@ -382,25 +373,23 @@ input[type="datetime-local"]::-webkit-datetime-edit-fields-wrapper {
 .btn-primary {
   background: var(--primary);
   color: white;
-  box-shadow: 0 6px 20px rgba(26, 188, 156, 0.3);
 }
 .btn-primary:active {
-  transform: scale(0.98);
-  box-shadow: 0 2px 10px rgba(26, 188, 156, 0.2);
+  background: var(--primary-dark);
 }
 
 .btn-danger {
-  background: white;
-  color: #dc3545;
-  border: 1px solid rgba(220, 53, 69, 0.2);
+  background: var(--bg-card);
+  color: var(--danger);
+  border: 1px solid var(--border);
 }
 .btn-danger:active {
-  background: rgba(220, 53, 69, 0.05);
+  background: var(--danger-soft);
 }
 
 .skeleton-form { display: flex; flex-direction: column; gap: 20px; padding: 20px 0; }
-.skeleton-item { padding: 30px 20px; border-radius: 20px; display: flex; flex-direction: column; gap: 12px; }
-.skeleton-line { height: 20px; border-radius: 10px; }
+.skeleton-item { padding: 30px 20px; border-radius: 8px; display: flex; flex-direction: column; gap: 12px; }
+.skeleton-line { height: 20px; border-radius: 6px; }
 .w-100 { width: 100%; }
 .w-60 { width: 60%; }
 </style>

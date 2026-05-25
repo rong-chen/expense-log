@@ -121,7 +121,7 @@ onMounted(async () => {
   width: 96px;
   height: 96px;
   border-radius: 24px;
-  box-shadow: 0 16px 32px rgba(230, 126, 34, 0.3);
+  box-shadow: 0 16px 32px rgba(37, 99, 235, 0.3);
   margin-bottom: 24px;
   object-fit: cover;
 }

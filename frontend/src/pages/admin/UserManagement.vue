@@ -214,12 +214,12 @@ onMounted(fetchUsers)
   background: #f1f5f9;
 }
 .text-orange {
-  color: #e67e22;
-  border-color: rgba(230, 126, 34, 0.2);
-  background: rgba(230, 126, 34, 0.05);
+  color: #2563EB;
+  border-color: rgba(37, 99, 235, 0.2);
+  background: rgba(37, 99, 235, 0.05);
 }
 .text-orange:active {
-  background: rgba(230, 126, 34, 0.1);
+  background: rgba(37, 99, 235, 0.1);
 }
 
 .loading-state, .empty-state {

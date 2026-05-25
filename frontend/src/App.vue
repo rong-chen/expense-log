@@ -105,7 +105,7 @@ router.isReady().then(() => {
   align-items: center;
   gap: 12px;
   z-index: 1000;
-  box-shadow: 0 4px 12px rgba(26, 188, 156, 0.2);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
   flex-shrink: 0;
 }
 .pwa-prompt-icon {
