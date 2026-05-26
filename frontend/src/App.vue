@@ -66,7 +66,7 @@ meta.setAttribute('content', '#2563EB')
 <style>
 /* CSS 重置与移动端适配基础样式由 index.css 提供 */
 #app-root {
-  height: 100dvh !important; /* 🌟 使用动态视口高度 100dvh，绝对防抖贴底 */
+  height: 100% !important; /* 🌟 iOS PWA 模式下使用 100% 高度能最稳定、百分百完美撑满全屏，绝无漏底空隙 */
   width: 100% !important;
   background-color: transparent !important; /* 🌟 设为透明，让 body 的浅灰白色自然呈现 */
   display: flex;
