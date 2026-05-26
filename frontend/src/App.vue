@@ -22,19 +22,6 @@ checkMobile()
 router.isReady().then(() => {
   isRouterReady.value = true
 })
-
-// 🌟 全局统一系统状态栏与背景色 (由于全站页面顶部均有蓝色元素，现将状态栏全局锁定为蓝色，底部为浅灰白，实现完美的沉浸式与不漏色设计)
-const gradient = 'linear-gradient(to bottom, #2563EB 0%, #2563EB 220px, #F8FAFC 220px, #F8FAFC 100%)'
-document.documentElement.style.setProperty('background', gradient, 'important')
-document.body.style.setProperty('background', gradient, 'important')
-
-let meta = document.querySelector('meta[name="theme-color"]')
-if (!meta) {
-  meta = document.createElement('meta')
-  meta.setAttribute('name', 'theme-color')
-  document.head.appendChild(meta)
-}
-meta.setAttribute('content', '#2563EB')
 </script>
 
 <template>
@@ -71,7 +58,7 @@ meta.setAttribute('content', '#2563EB')
   height: 100vh !important;
   height: 100% !important;
   width: 100% !important;
-  background-color: inherit; /* 🌟 继承 body 的背景色，使其动态同步 */
+  background-color: var(--bg-base);
   display: flex;
   flex-direction: column;
   /* 强力截断：如果在 100vw 之外的任何元素全部斩底裁掉！ */

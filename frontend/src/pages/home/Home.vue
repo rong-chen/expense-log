@@ -247,7 +247,7 @@ function openEditPage(bill: any) {
 <style scoped>
 .home-page {
   min-height: 100vh;
-  background: transparent;
+  background: var(--primary);
 }
 
 .blue-header {

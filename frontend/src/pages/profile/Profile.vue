@@ -116,7 +116,7 @@ onMounted(() => {
 <style scoped>
 .profile-page {
   min-height: 100vh;
-  background: transparent;
+  background: var(--primary);
 }
 
 .blue-header {
