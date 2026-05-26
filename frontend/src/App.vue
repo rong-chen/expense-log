@@ -34,11 +34,13 @@ watch(
     // 蓝色方案采用定义好的 --primary 颜色 (#2563EB)，其它页面采用 --bg-base (#F8FAFC)
     const themeColor = isBluePage ? '#2563EB' : '#F8FAFC'
     
-    // 1. 动态更新 html 和 body 的背景色 (这是 iOS Safari 顶部状态栏变色的决定性属性)
+    // 1. 动态更新 html 的背景色 (这是 iOS Safari 顶部状态栏变色的关键，它控制状态栏与弹性区域背景)
     document.documentElement.style.setProperty('background-color', themeColor, 'important')
-    document.body.style.setProperty('background-color', themeColor, 'important')
     
-    // 2. 动态更新 theme-color 元标签 (用于安卓 Chrome 与 iOS 15+ 系统的沉浸式系统栏)
+    // 2. 动态更新 body 的背景色 (确保 body 底层始终是干净的浅灰白色，在页面切换或回弹时绝不穿帮露出蓝色)
+    document.body.style.setProperty('background-color', '#F8FAFC', 'important')
+    
+    // 3. 动态更新 theme-color 元标签 (用于安卓 Chrome 与 iOS 15+ 系统的沉浸式系统栏)
     let meta = document.querySelector('meta[name="theme-color"]')
     if (!meta) {
       meta = document.createElement('meta')
