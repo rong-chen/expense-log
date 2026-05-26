@@ -15,9 +15,9 @@ export default defineConfig({
       manifest: {
         name: '易账 - Expense Log',
         short_name: '易账',
-        description: '基于视觉AI的下一代易账应用',
-        theme_color: '#faf8f5',
-        background_color: '#faf8f5',
+        description: '简单记账，清晰生活',
+        theme_color: '#2563EB',
+        background_color: '#F8FAFC',
         display: 'standalone',
         icons: [
           {
