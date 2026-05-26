@@ -22,7 +22,6 @@ use([
 const auth = useAuthStore()
 const ledgerStore = useLedgerStore()
 const router = useRouter()
-const activeTab = ref<'text' | 'chart'>('text')
 
 const stats = ref({
   monthExpense: 0,
@@ -145,79 +144,46 @@ function openEditPage(bill: any) {
 
 <template>
   <div class="home-page">
-    <!-- 顶部 Header -->
-    <div class="home-header">
-      <div class="header-logo" @click="router.push('/ledger/select')" style="cursor: pointer;">
-        <img src="/favicon.png" alt="logo" class="logo-img" />
-        <div class="ledger-selector">
+    <!-- 蓝色顶部 Header -->
+    <div class="blue-header">
+      <div class="header-row">
+        <div class="ledger-selector" @click="router.push('/ledger/select')">
           <span class="ledger-name">{{ ledgerStore.currentLedger?.name || '个人主账本' }}</span>
           <ChevronDown :size="16" class="dropdown-icon" />
         </div>
+        <button class="header-icon-btn"><Bell :size="20" /></button>
       </div>
-      <div class="header-actions">
-        <button class="header-icon-btn"><Bell :size="22" /></button>
+      <div class="stats-row">
+        <div class="stat-block">
+          <span class="stat-label">本月支出</span>
+          <span class="stat-value-lg">¥ {{ stats.monthExpense.toFixed(2) }}</span>
+        </div>
+        <div class="stat-block align-end">
+          <span class="stat-label">本月收入</span>
+          <span class="stat-value-sm">¥ {{ stats.monthIncome.toFixed(2) }}</span>
+        </div>
       </div>
     </div>
 
-
-
-    <!-- 快捷操作栏 -->
-    <div class="quick-actions">
-      <div class="action-card card" @click="router.push('/bill/add')">
-        <div class="action-icon" style="background: rgba(37,99,235,0.08); color: var(--primary);">
-          <PenLine :size="22" />
-        </div>
-        <span class="action-label">手动记账</span>
-      </div>
-      <div class="action-card card" @click="router.push('/recurring')">
-        <div class="action-icon" style="background: rgba(217,119,6,0.08); color: #D97706;">
-          <CalendarClock :size="22" />
-        </div>
-        <span class="action-label">周期账单</span>
-      </div>
-    </div>
-
-    <!-- 切换 Tab -->
-    <div class="tab-switch">
-      <button :class="['tab-btn', { active: activeTab === 'text' }]" @click="activeTab = 'text'">数据总览</button>
-      <button :class="['tab-btn', { active: activeTab === 'chart' }]" @click="activeTab = 'chart'">图表分析</button>
-    </div>
-
-    <!-- 文字统计视图 -->
-    <div v-if="activeTab === 'text'">
-      <div class="stats-grid">
-        <div class="stat-card card">
-          <div class="stat-body">
-            <span class="stat-label">本月支出</span>
-            <span class="stat-value">¥ {{ stats.monthExpense.toFixed(2) }}</span>
+    <!-- 内容区 -->
+    <div class="content-area">
+      <!-- 快捷操作栏 -->
+      <div class="quick-actions">
+        <div class="action-card" @click="router.push('/bill/add')">
+          <div class="action-icon" style="color: var(--primary);">
+            <PenLine :size="20" />
           </div>
+          <span class="action-label">手动记账</span>
         </div>
-        <div class="stat-card card">
-          <div class="stat-body">
-            <span class="stat-label">本月账单数</span>
-            <span class="stat-value">{{ stats.billCount }} <span>笔</span></span>
+        <div class="action-card" @click="router.push('/recurring')">
+          <div class="action-icon" style="color: #D97706;">
+            <CalendarClock :size="20" />
           </div>
-        </div>
-        <div class="stat-card card span-2">
-          <div class="stat-body">
-            <span class="stat-label">环比上月</span>
-            <div class="compare-row">
-              <span class="stat-value">¥ {{ stats.lastMonthExpense.toFixed(2) }}</span>
-              <span 
-                v-if="stats.lastMonthExpense > 0" 
-                class="compare-badge" 
-                :class="stats.monthExpense > stats.lastMonthExpense ? 'up' : 'down'"
-              >
-                {{ stats.monthExpense > stats.lastMonthExpense ? '↑' : '↓' }}
-                {{ Math.abs(((stats.monthExpense - stats.lastMonthExpense) / stats.lastMonthExpense) * 100).toFixed(1) }}%
-              </span>
-              <span v-else class="compare-badge neutral">暂无数据</span>
-            </div>
-          </div>
+          <span class="action-label">周期账单</span>
         </div>
       </div>
 
-      <!-- 最近账单预览 -->
+      <!-- 最近账单 -->
       <div class="section">
         <div class="section-header">
           <h2>最近账单</h2>
@@ -226,9 +192,9 @@ function openEditPage(bill: any) {
           </span>
         </div>
         <div v-if="recentBills.length > 0" class="recent-list">
-          <div 
-            v-for="bill in recentBills" :key="bill.ID" 
-            class="recent-item card"
+          <div
+            v-for="bill in recentBills" :key="bill.ID"
+            class="recent-item"
             @click="openEditPage(bill)"
           >
             <div class="recent-info">
@@ -248,25 +214,31 @@ function openEditPage(bill: any) {
           <p>暂无账单记录，试试手动记账</p>
         </div>
       </div>
-    </div>
 
-    <!-- 图表视图 -->
-    <div v-else>
-      <div class="card chart-card">
-        <h2 class="chart-title">收支趋势</h2>
-        <div v-if="!hasTrendData" class="chart-empty">
-          <FileText :size="36" style="opacity: 0.4; margin-bottom: 8px;" />
-          <p>暂无趋势数据</p>
+      <!-- 图表区 -->
+      <div class="section">
+        <div class="section-header">
+          <h2>收支趋势</h2>
         </div>
-        <v-chart v-else class="chart" :option="trendOption" autoresize />
+        <div class="card chart-card">
+          <div v-if="!hasTrendData" class="chart-empty">
+            <FileText :size="36" style="opacity: 0.4; margin-bottom: 8px;" />
+            <p>暂无趋势数据</p>
+          </div>
+          <v-chart v-else class="chart" :option="trendOption" autoresize />
+        </div>
       </div>
-      <div class="card chart-card">
-        <h2 class="chart-title">分类支出</h2>
-        <div v-if="!hasCategoryData" class="chart-empty">
-          <FileText :size="36" style="opacity: 0.4; margin-bottom: 8px;" />
-          <p>暂无分类数据</p>
+      <div class="section">
+        <div class="section-header">
+          <h2>分类支出</h2>
         </div>
-        <v-chart v-else class="chart" :option="pieOption" autoresize />
+        <div class="card chart-card">
+          <div v-if="!hasCategoryData" class="chart-empty">
+            <FileText :size="36" style="opacity: 0.4; margin-bottom: 8px;" />
+            <p>暂无分类数据</p>
+          </div>
+          <v-chart v-else class="chart" :option="pieOption" autoresize />
+        </div>
       </div>
     </div>
   </div>
@@ -274,120 +246,129 @@ function openEditPage(bill: any) {
 
 <style scoped>
 .home-page {
-  padding: 16px;
-  max-width: 600px;
-  margin: 0 auto;
-  padding-top: calc(16px + env(safe-area-inset-top));
+  min-height: 100vh;
+  background: var(--bg-base);
 }
 
-/* Header */
-.home-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
-.header-logo { display: flex; align-items: center; gap: 8px; font-size: 1.4rem; font-weight: 800; color: var(--primary); letter-spacing: -0.5px; }
-.logo-img { width: 28px; height: 28px; border-radius: 6px; }
-.header-actions { display: flex; gap: 8px; }
-.header-icon-btn {
-  width: 36px; height: 36px; border-radius: 8px; border: 1px solid var(--border);
-  background: var(--bg-card); color: var(--text-secondary);
-  display: flex; justify-content: center; align-items: center;
-  cursor: pointer; transition: all 0.2s;
-}
-.header-icon-btn:active { background: var(--primary-soft); color: var(--primary); }
-
-/* 快捷操作栏 */
-.quick-actions {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 12px;
-  margin-bottom: 20px;
-}
-.action-card {
+.blue-header {
+  background: var(--primary);
+  padding: 48px 20px 20px;
   display: flex;
   flex-direction: column;
+  gap: 16px;
+}
+.header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.ledger-selector {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.dropdown-icon { color: rgba(255,255,255,0.67); }
+.header-icon-btn {
+  background: none;
+  border: none;
+  color: #fff;
+  cursor: pointer;
+  padding: 4px;
+}
+.stats-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+.stat-block { display: flex; flex-direction: column; gap: 4px; }
+.stat-block.align-end { align-items: flex-end; }
+.stat-label { font-size: 12px; color: rgba(255,255,255,0.73); }
+.stat-value-lg { font-size: 26px; font-weight: 800; color: #fff; }
+.stat-value-sm { font-size: 16px; font-weight: 700; color: #fff; }
+
+.content-area {
+  padding: 16px;
+  padding-bottom: 80px;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.quick-actions {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.action-card {
+  flex: 1;
+  display: flex;
   align-items: center;
   gap: 10px;
-  padding: 18px 12px;
+  padding: 14px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
   cursor: pointer;
   transition: all 0.2s;
 }
-.action-card:active {
-  transform: scale(0.96);
-}
+.action-card:active { transform: scale(0.97); }
 .action-icon {
-  width: 44px;
-  height: 44px;
-  border-radius: 8px;
+  width: 36px;
+  height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 .action-label {
-  font-size: 0.85rem;
+  font-size: 14px;
   font-weight: 600;
   color: var(--text-primary);
 }
 
-/* 切换 Tab */
-.tab-switch {
+.section { margin-bottom: 20px; }
+.section-header {
   display: flex;
-  background: rgba(0,0,0,0.04);
-  border-radius: 8px;
-  padding: 3px;
-  margin-bottom: 20px;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
 }
-.tab-btn {
-  flex: 1;
-  padding: 10px 0;
-  border: none;
-  background: transparent;
-  border-radius: 6px;
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: var(--text-secondary);
-  cursor: pointer;
-  transition: all 0.2s;
-}
-.tab-btn.active {
-  background: var(--bg-card);
-  color: var(--primary);
-}
-
-/* 文字统计 */
-.stats-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-bottom: 24px; }
-.stat-card { display: flex; align-items: center; padding: 16px; min-width: 0; }
-.stat-body { display: flex; flex-direction: column; flex: 1; min-width: 0; }
-.stat-label { font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.stat-value { font-size: 1.15rem; font-weight: 700; color: var(--text-primary); white-space: normal; word-break: break-all; }
-.span-2 { grid-column: span 2; }
-.compare-row { display: flex; align-items: center; gap: 10px; margin-top: 2px; }
-.compare-badge {
-  font-size: 0.8rem;
+.section-header h2 {
+  font-size: 15px;
   font-weight: 700;
-  padding: 3px 10px;
-  border-radius: 20px;
+  margin: 0;
+  color: var(--text-primary);
 }
-.compare-badge.up { background: rgba(220,38,38,0.08); color: #DC2626; }
-.compare-badge.down { background: rgba(22,163,74,0.08); color: #16A34A; }
-.compare-badge.neutral { background: rgba(0,0,0,0.05); color: var(--text-secondary); }
+.view-all {
+  font-size: 13px;
+  color: var(--primary);
+  cursor: pointer;
+  font-weight: 500;
+}
 
-/* 最近账单 */
-.section { margin-bottom: 24px; }
-.section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
-.section-header h2 { font-size: 1.1rem; font-weight: 700; margin: 0; color: var(--text-primary); }
-.view-all { font-size: 0.85rem; color: var(--primary); cursor: pointer; font-weight: 500; }
-
-.recent-list { display: flex; flex-direction: column; gap: 10px; }
+.recent-list {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--bg-card);
+}
 .recent-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 14px 16px;
+  padding: 14px;
   cursor: pointer;
-  transition: all 0.15s;
+  transition: background 0.15s;
 }
-.recent-item:active { transform: scale(0.98); }
+.recent-item:not(:last-child) {
+  border-bottom: 1px solid var(--border);
+}
+.recent-item:active { background: var(--bg-base); }
 .recent-info { flex: 1; min-width: 0; }
 .recent-merchant {
-  font-size: 0.95rem;
+  font-size: 14px;
   font-weight: 600;
   color: var(--text-primary);
   white-space: nowrap;
@@ -395,12 +376,12 @@ function openEditPage(bill: any) {
   text-overflow: ellipsis;
 }
 .recent-meta {
-  font-size: 0.78rem;
+  font-size: 12px;
   color: var(--text-secondary);
-  margin-top: 3px;
+  margin-top: 2px;
 }
 .recent-amount {
-  font-size: 1.05rem;
+  font-size: 15px;
   font-weight: 700;
   color: var(--text-primary);
   flex-shrink: 0;
@@ -420,63 +401,17 @@ function openEditPage(bill: any) {
   color: var(--text-secondary);
   text-align: center;
 }
-.empty-hint p { font-size: 0.85rem; margin: 0; max-width: 220px; }
+.empty-hint p { font-size: 13px; margin: 0; }
 
-/* 图表视图 */
-.chart-card { padding: 20px; margin-bottom: 16px; }
-.chart-title { font-size: 1.1rem; font-weight: 600; margin: 0 0 16px 0; color: var(--text-primary); }
-.chart { width: 100%; height: 260px; }
+.chart-card { padding: 16px; }
+.chart { width: 100%; height: 240px; }
 .chart-empty {
-  display: flex; flex-direction: column; align-items: center;
-  justify-content: center; padding: 40px 0; color: var(--text-secondary);
-}
-.chart-empty p { margin: 0; font-size: 0.9rem; }
-
-/* 账本选择器样式 */
-.ledger-selector {
   display: flex;
-  align-items: center;
-  gap: 4px;
-  background: rgba(0, 0, 0, 0.04);
-  padding: 4px 10px;
-  border-radius: 20px;
-  font-size: 0.9rem;
-  font-weight: 500;
-  transition: background 0.2s;
-}
-.ledger-selector:active {
-  background: rgba(0, 0, 0, 0.08);
-}
-.ledger-name {
-  max-width: 120px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.dropdown-icon {
-  opacity: 0.6;
-}
-
-.drawer-btn {
-  flex: 1;
-  display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  padding: 12px;
-  border: none;
-  border-radius: 12px;
-  background: rgba(44, 62, 80, 0.05);
-  color: var(--primary);
-  font-weight: 600;
-  font-size: 0.95rem;
+  padding: 40px 0;
+  color: var(--text-secondary);
 }
-@keyframes slideUp {
-  from { transform: translateY(100%); }
-  to { transform: translateY(0); }
-}
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
+.chart-empty p { margin: 0; font-size: 13px; }
 </style>

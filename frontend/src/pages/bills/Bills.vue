@@ -2,7 +2,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { billApi } from '@/api'
-import { FileText, Search } from 'lucide-vue-next'
+import { FileText, Search, SlidersHorizontal } from 'lucide-vue-next'
 import { useAuthStore } from '@/stores/auth'
 import { toast } from 'vue-sonner'
 
@@ -112,14 +112,20 @@ function openEditPage(bill: any) {
 
 <template>
   <div class="bills-page">
-    <div class="filter-bar">
-      <!-- 搜索框 -->
-      <div class="search-box">
+    <!-- 蓝色顶部 Header -->
+    <div class="blue-header">
+      <div class="header-top">
+        <h1 class="header-title">账单明细</h1>
+        <SlidersHorizontal :size="20" class="header-filter-icon" />
+      </div>
+      <div class="header-search">
         <Search :size="16" class="search-icon" />
         <input type="text" v-model="keyword" @input="onFilterChange" placeholder="搜索商户名或备注" class="search-input" />
       </div>
-      
-      <!-- 筛选组合 -->
+    </div>
+
+    <!-- 筛选区 -->
+    <div class="content-area">
       <div class="filter-group">
         <select v-model="category" @change="onFilterChange" class="filter-select">
           <option value="">全部分类</option>
@@ -127,105 +133,118 @@ function openEditPage(bill: any) {
         </select>
         <input type="month" v-model="date" @change="onFilterChange" class="filter-date" />
       </div>
-    </div>
 
-    <div class="list-summary" v-if="!loading">
-      符合条件的账单共 <strong>{{ totalCount }}</strong> 笔
-    </div>
-
-    <!-- 骨架屏加载状态 -->
-    <div v-if="loading" class="skeleton-list">
-      <div v-for="i in 5" :key="i" class="skeleton-item card">
-        <div class="skeleton-main">
-          <div class="skeleton-line skeleton w-100"></div>
-          <div class="skeleton-line skeleton w-60"></div>
-        </div>
-        <div class="skeleton-amount skeleton"></div>
+      <div class="list-summary" v-if="!loading">
+        符合条件的账单共 <strong>{{ totalCount }}</strong> 笔
       </div>
-    </div>
 
-    <!-- 真实数据 -->
-    <div v-else-if="bills.length > 0" class="bill-list">
-      <div v-for="bill in bills" :key="bill.ID" class="bill-card card" @click="openEditPage(bill)" style="cursor: pointer;">
-        
-        <!-- 商户名与备注 -->
-        <div class="bill-info">
-          <div class="bill-merchant text-truncate">{{ bill.merchant || '未识别商户' }}</div>
-          <div class="bill-meta text-truncate">
-            <span class="meta-item">{{ formatDate(bill.transaction_date) }}</span>
-            <span class="meta-item" v-if="bill.category">· {{ bill.category }}</span>
-            <span class="meta-item" v-if="bill.user_id !== auth.user?.id" style="color: var(--primary);">· 他人</span>
+      <!-- 骨架屏加载状态 -->
+      <div v-if="loading" class="skeleton-list">
+        <div v-for="i in 5" :key="i" class="skeleton-item">
+          <div class="skeleton-main">
+            <div class="skeleton-line skeleton w-100"></div>
+            <div class="skeleton-line skeleton w-60"></div>
           </div>
-          <div class="bill-remark text-truncate">
-            {{ bill.remark || '（暂无备注）' }}
+          <div class="skeleton-amount skeleton"></div>
+        </div>
+      </div>
+
+      <!-- 真实数据 -->
+      <div v-else-if="bills.length > 0" class="bill-list">
+        <div v-for="bill in bills" :key="bill.ID" class="bill-item" @click="openEditPage(bill)">
+          <div class="bill-info">
+            <div class="bill-merchant text-truncate">{{ bill.merchant || '未识别商户' }}</div>
+            <div class="bill-meta text-truncate">
+              <span>{{ formatDate(bill.transaction_date) }}</span>
+              <span v-if="bill.category"> · {{ bill.category }}</span>
+              <span v-if="bill.user_id !== auth.user?.id" style="color: var(--primary);"> · 他人</span>
+            </div>
+          </div>
+          <div class="bill-amount" :class="{ refund: bill.category === '退款' }">
+            {{ bill.category === '退款' ? '' : '-' }}¥{{ Number(bill.amount).toFixed(2) }}
           </div>
         </div>
-
-        <!-- 右侧金额：绝对保护不被挤压 -->
-        <div class="bill-amount" :class="{ refund: bill.category === '退款' }">
-          {{ bill.category === '退款' ? '' : '-' }}¥{{ Number(bill.amount).toFixed(2) }}
-        </div>
-
       </div>
-    </div>
 
-    <!-- 空状态 -->
-    <div v-else class="empty-state">
-      <FileText :size="48" style="opacity: 0.3; margin-bottom: 16px;" />
-      <h3>尚无明细</h3>
-      <p>您的所有账单分析都会归档在这里</p>
-    </div>
+      <!-- 空状态 -->
+      <div v-else class="empty-state">
+        <FileText :size="48" style="opacity: 0.3; margin-bottom: 16px;" />
+        <h3>尚无明细</h3>
+        <p>您的所有账单分析都会归档在这里</p>
+      </div>
 
-    <!-- 无限滚动底部触发器 -->
-    <div ref="loadMoreTrigger" class="load-more-trigger">
-      <div v-if="loadingMore" class="loading-spinner">加载更多数据中...</div>
+      <!-- 无限滚动底部触发器 -->
+      <div ref="loadMoreTrigger" class="load-more-trigger">
+        <div v-if="loadingMore" class="loading-spinner">加载更多数据中...</div>
+      </div>
     </div>
   </div>
 </template>
 
 <style scoped>
 .bills-page {
-  padding: 16px;
-  max-width: 600px;
-  margin: 0 auto;
-  padding-top: calc(16px + env(safe-area-inset-top));
-  padding-bottom: 24px;
+  min-height: 100vh;
+  background: var(--bg-base);
 }
 
-.filter-bar {
+.blue-header {
+  background: var(--primary);
+  padding: 48px 20px 16px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  margin-bottom: 16px;
+  gap: 14px;
 }
-
-.search-box {
-  position: relative;
+.header-top {
   display: flex;
+  justify-content: space-between;
   align-items: center;
 }
-.search-icon {
-  position: absolute;
-  left: 12px;
-  color: var(--text-tertiary);
+.header-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #fff;
+  margin: 0;
 }
-.search-input {
-  width: 100%;
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  padding: 12px 12px 12px 38px;
+.header-filter-icon {
+  color: rgba(255,255,255,0.8);
+  cursor: pointer;
+}
+.header-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255,255,255,0.13);
   border-radius: 8px;
-  font-size: 0.9rem;
-  outline: none;
-  transition: border-color 0.2s;
+  padding: 0 12px;
+  height: 40px;
 }
-.search-input:focus {
-  border-color: var(--primary);
+.header-search .search-icon {
+  color: rgba(255,255,255,0.53);
+  flex-shrink: 0;
+}
+.header-search .search-input {
+  flex: 1;
+  border: none;
+  background: none;
+  color: #fff;
+  font-size: 13px;
+  outline: none;
+}
+.header-search .search-input::placeholder {
+  color: rgba(255,255,255,0.4);
+}
+
+.content-area {
+  padding: 12px 16px 24px;
+  max-width: 600px;
+  margin: 0 auto;
+  padding-bottom: 80px;
 }
 
 .filter-group {
   display: flex;
   gap: 10px;
+  margin-bottom: 12px;
 }
 .filter-select, .filter-date {
   flex: 1;
@@ -233,103 +252,68 @@ function openEditPage(bill: any) {
   border: 1px solid var(--border);
   padding: 10px 12px;
   border-radius: 8px;
-  font-size: 0.85rem;
+  font-size: 13px;
   color: var(--text-primary);
   outline: none;
 }
 
 .list-summary {
-  font-size: 0.85rem;
+  font-size: 13px;
   color: var(--text-secondary);
   margin-bottom: 12px;
-  padding: 0 4px;
 }
 .list-summary strong {
   color: var(--primary);
   font-weight: 700;
-  margin: 0 2px;
 }
 
 .bill-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--bg-card);
 }
-
-.bill-card {
+.bill-item {
   display: flex;
   align-items: center;
   padding: 14px;
-  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s;
 }
-.bill-card:active {
-  background: var(--bg-card-hover);
+.bill-item:not(:last-child) {
+  border-bottom: 1px solid var(--border);
 }
+.bill-item:active { background: var(--bg-base); }
 
 .bill-info {
   flex: 1;
   min-width: 0;
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  gap: 3px;
+  gap: 2px;
 }
-
 .text-truncate {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
-
 .bill-merchant {
-  font-size: 0.95rem;
+  font-size: 14px;
   font-weight: 600;
   color: var(--text-primary);
-  line-height: 1.2;
 }
-
 .bill-meta {
-  font-size: 0.75rem;
+  font-size: 12px;
   color: var(--text-secondary);
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.meta-item {
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-}
-
-.bill-remark {
-  font-size: 0.75rem;
-  color: var(--text-tertiary);
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.load-more-trigger {
-  height: 20px;
-  width: 100%;
-}
-.loading-spinner {
-  text-align: center;
-  font-size: 0.8rem;
-  color: var(--text-tertiary);
-  padding: 10px 0;
 }
 
 .bill-amount {
-  font-size: 1.05rem;
+  font-size: 15px;
   font-weight: 700;
   color: var(--text-primary);
   margin-left: 12px;
   flex-shrink: 0;
-  max-width: 40%;
   text-align: right;
-  word-break: break-all;
 }
 .bill-amount.refund {
   color: var(--success);
@@ -337,8 +321,16 @@ function openEditPage(bill: any) {
   opacity: 0.6;
 }
 
+.load-more-trigger { height: 20px; width: 100%; }
+.loading-spinner {
+  text-align: center;
+  font-size: 12px;
+  color: var(--text-tertiary);
+  padding: 10px 0;
+}
+
 .skeleton-list { display: flex; flex-direction: column; gap: 8px; }
-.skeleton-item { display: flex; align-items: center; padding: 14px; border-radius: 8px; }
+.skeleton-item { display: flex; align-items: center; padding: 14px; background: var(--bg-card); border-radius: 8px; border: 1px solid var(--border); }
 .skeleton-main { flex: 1; display: flex; flex-direction: column; gap: 8px; }
 .skeleton-line { height: 14px; border-radius: 6px; }
 .w-100 { width: 100%; }
@@ -349,11 +341,10 @@ function openEditPage(bill: any) {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
   padding: 60px 0;
   color: var(--text-secondary);
   text-align: center;
 }
-.empty-state h3 { font-size: 1.1rem; margin-bottom: 8px; }
-.empty-state p { font-size: 0.85rem; max-width: 240px; }
+.empty-state h3 { font-size: 16px; margin-bottom: 8px; }
+.empty-state p { font-size: 13px; max-width: 240px; }
 </style>

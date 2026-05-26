@@ -52,50 +52,44 @@ async function handleRegister() {
 
 <template>
   <div class="page-container">
+    <div class="blue-accent"></div>
     <div class="content-wrapper">
-      <!-- 品牌头部 (左对齐，更精干) -->
+      <!-- 品牌头部 -->
       <div class="header">
-        <div class="logo-box">
-          <img src="/icon-192.png" alt="易账 Logo" />
-        </div>
-        <div>
-          <h1 class="title">易账</h1>
-          <p class="subtitle">让记账成为一种享受</p>
-        </div>
+        <h1 class="title">易账</h1>
+        <p class="subtitle">简单记账，清晰生活</p>
       </div>
 
-      <!-- 注册卡片 -->
-      <div class="auth-card">
-        <h2 class="card-title">快捷注册</h2>
-        
+      <!-- 注册表单 -->
+      <div class="form-section">
         <form @submit.prevent="handleRegister" class="form">
           <div class="input-line">
             <label>手机号码</label>
-            <input 
-              type="tel" 
-              v-model="phone" 
-              placeholder="请输入 11 位手机号" 
-              autocomplete="tel" 
+            <input
+              type="tel"
+              v-model="phone"
+              placeholder="请输入11位手机号"
+              autocomplete="tel"
             />
           </div>
-          
+
           <div class="input-line">
             <label>设置密码</label>
-            <input 
-              type="password" 
-              v-model="password" 
-              placeholder="设置密码（至少6位）" 
-              autocomplete="new-password" 
+            <input
+              type="password"
+              v-model="password"
+              placeholder="设置密码（至少6位）"
+              autocomplete="new-password"
             />
           </div>
 
           <div class="input-line">
             <label>邀请码</label>
-            <input 
-              type="text" 
-              v-model="invitationCode" 
-              placeholder="请输入 8 位邀请码" 
-              autocomplete="off" 
+            <input
+              type="text"
+              v-model="invitationCode"
+              placeholder="请输入8位邀请码"
+              autocomplete="off"
             />
           </div>
 
@@ -115,9 +109,9 @@ async function handleRegister() {
           <router-link to="/login" replace class="text-link">去登录</router-link>
         </div>
       </div>
-      
+
       <div class="bottom-links">
-        <span class="safe-text">已启用安全加密传输，守护您的隐私</span>
+        <span class="safe-text">已启用安全加密传输</span>
       </div>
     </div>
   </div>
@@ -126,71 +120,44 @@ async function handleRegister() {
 <style scoped>
 .page-container {
   min-height: 100vh;
-  min-height: 100%;
   background-color: var(--bg-base);
   display: flex;
   flex-direction: column;
 }
-
+.blue-accent {
+  height: 80px;
+  background: var(--primary);
+  flex-shrink: 0;
+}
 .content-wrapper {
   flex: 1;
   display: flex;
   flex-direction: column;
-  justify-content: flex-start;
-  align-items: center;
-  padding: calc(4vh + env(safe-area-inset-top)) 24px calc(24px + env(safe-area-inset-bottom));
+  padding: 0 32px;
+  padding-bottom: calc(24px + env(safe-area-inset-bottom));
   max-width: 460px;
   margin: 0 auto;
   width: 100%;
 }
-
 .header {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  width: 100%;
-  margin-bottom: 32px;
-  padding-left: 8px;
-}
-.logo-box {
-  width: 48px;
-  height: 48px;
-  border-radius: 8px;
-  overflow: hidden;
-  flex-shrink: 0;
-}
-.logo-box img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
+  padding-top: 32px;
+  margin-bottom: 48px;
 }
 .title {
-  font-size: 26px;
+  font-size: 28px;
   font-weight: 800;
   color: var(--primary);
-  margin: 0 0 2px;
+  margin: 0 0 8px;
 }
 .subtitle {
-  font-size: 14px;
+  font-size: 15px;
   color: var(--text-secondary);
   margin: 0;
 }
 
-.auth-card {
-  background: var(--bg-card);
-  width: 100%;
-  border-radius: 8px;
-  padding: 32px 28px;
-  border: 1px solid var(--border);
+.form-section {
+  flex: 1;
 }
-.card-title {
-  font-size: 20px;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin: 0 0 28px;
-}
-
 .form {
   display: flex;
   flex-direction: column;
@@ -199,7 +166,7 @@ async function handleRegister() {
 .input-line {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
 }
 .input-line label {
   font-size: 13px;
@@ -210,7 +177,7 @@ async function handleRegister() {
   border: 1px solid var(--border);
   border-radius: 8px;
   background: var(--bg-card);
-  padding: 12px 14px;
+  padding: 14px;
   font-size: 14px;
   color: var(--text-primary);
   outline: none;
@@ -235,7 +202,6 @@ async function handleRegister() {
   background: var(--danger-soft);
   padding: 10px 14px;
   border-radius: 6px;
-  margin-top: -4px;
 }
 
 .submit-btn {
@@ -243,10 +209,9 @@ async function handleRegister() {
   color: white;
   border: none;
   border-radius: 8px;
-  padding: 14px;
+  height: 48px;
   font-size: 15px;
   font-weight: 600;
-  margin-top: 8px;
   cursor: pointer;
   transition: all 0.2s;
   display: flex;
@@ -255,16 +220,9 @@ async function handleRegister() {
   position: relative;
   overflow: hidden;
 }
-.submit-btn:active {
-  background: var(--primary-dark);
-}
-.submit-btn:disabled {
-  opacity: 0.7;
-  cursor: not-allowed;
-}
-.submit-btn.is-loading .btn-text {
-  opacity: 0;
-}
+.submit-btn:active { background: var(--primary-dark); }
+.submit-btn:disabled { opacity: 0.7; cursor: not-allowed; }
+.submit-btn.is-loading .btn-text { opacity: 0; }
 .spinner {
   position: absolute;
   width: 20px;
@@ -276,30 +234,25 @@ async function handleRegister() {
   opacity: 0;
   transition: opacity 0.2s;
 }
-.submit-btn.is-loading .spinner {
-  opacity: 1;
-}
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
+.submit-btn.is-loading .spinner { opacity: 1; }
+@keyframes spin { to { transform: rotate(360deg); } }
 
 .card-footer {
   margin-top: 24px;
   text-align: center;
-  font-size: 14px;
+  font-size: 13px;
 }
-.text-mute {
-  color: var(--text-secondary);
-}
+.text-mute { color: var(--text-secondary); }
 .text-link {
   color: var(--primary);
   font-weight: 600;
   text-decoration: none;
-  margin-left: 2px;
+  margin-left: 4px;
 }
 
 .bottom-links {
-  margin-top: 40px;
+  margin-top: auto;
+  padding-top: 24px;
   text-align: center;
 }
 .safe-text {
