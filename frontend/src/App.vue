@@ -66,8 +66,7 @@ meta.setAttribute('content', '#2563EB')
 <style>
 /* CSS 重置与移动端适配基础样式由 index.css 提供 */
 #app-root {
-  height: 100dvh !important; /* 🌟 使用动态视口高度 100dvh，完美解决 iOS Safari 键盘与工具栏高度跳动 */
-  height: 100% !important;
+  height: 100dvh !important; /* 🌟 使用动态视口高度 100dvh，绝对防抖贴底 */
   width: 100% !important;
   background-color: transparent !important; /* 🌟 设为透明，让 body 的浅灰白色自然呈现 */
   display: flex;
