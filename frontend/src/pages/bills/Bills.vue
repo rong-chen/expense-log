@@ -184,7 +184,7 @@ function openEditPage(bill: any) {
 <style scoped>
 .bills-page {
   min-height: 100vh;
-  background: var(--bg-base);
+  background: var(--primary);
 }
 
 .blue-header {
@@ -239,6 +239,7 @@ function openEditPage(bill: any) {
   max-width: 600px;
   margin: 0 auto;
   padding-bottom: 80px;
+  background: var(--bg-base);
 }
 
 .filter-group {

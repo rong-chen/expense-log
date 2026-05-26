@@ -116,7 +116,7 @@ onMounted(() => {
 <style scoped>
 .profile-page {
   min-height: 100vh;
-  background: var(--bg-base);
+  background: var(--primary);
 }
 
 .blue-header {
@@ -170,6 +170,7 @@ onMounted(() => {
   padding-bottom: 80px;
   max-width: 600px;
   margin: 0 auto;
+  background: var(--bg-base);
 }
 
 .menu-list {
