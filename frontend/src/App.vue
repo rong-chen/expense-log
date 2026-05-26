@@ -22,8 +22,8 @@ router.isReady().then(() => {
   isRouterReady.value = true
 })
 
-// 🌟 核心解决方案：锁定 html 为蓝色以渲染系统状态栏，锁定 body 为浅灰白以保证底盘极其纯净、绝不漏色
-document.documentElement.style.setProperty('background-color', '#2563EB', 'important')
+// 🌟 核心解决方案：锁定 html 和 body 为纯浅灰白 (#F8FAFC) 确保整站底盘纯净不漏色，且顶部状态栏自然沉浸在蓝色的 Header 中
+document.documentElement.style.setProperty('background-color', '#F8FAFC', 'important')
 document.body.style.setProperty('background-color', '#F8FAFC', 'important')
 
 let meta = document.querySelector('meta[name="theme-color"]')
@@ -66,7 +66,7 @@ meta.setAttribute('content', '#2563EB')
 <style>
 /* CSS 重置与移动端适配基础样式由 index.css 提供 */
 #app-root {
-  height: 100vh !important;
+  height: 100dvh !important; /* 🌟 使用动态视口高度 100dvh，完美解决 iOS Safari 键盘与工具栏高度跳动 */
   height: 100% !important;
   width: 100% !important;
   background-color: transparent !important; /* 🌟 设为透明，让 body 的浅灰白色自然呈现 */
