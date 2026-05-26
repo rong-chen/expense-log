@@ -381,10 +381,21 @@ a:hover {
 
 /* ====== 绝对锁定根容器视图 (解决双向Ghost滚动条) ====== */
 html,
-body,
-#app {
+body {
   width: 100% !important;
   height: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  overflow-x: hidden !important;
+  overflow-y: hidden !important;
+  overscroll-behavior: none !important;
+  max-width: 100% !important;
+}
+
+#app {
+  width: 100% !important;
+  height: 100vh !important; /* 🌟 设为 100vh 与 app-root 完美一致，防止 PWA Standalone 模式下因高度不一致而裁断/吞掉底部 TabBar */
   margin: 0 !important;
   padding: 0 !important;
   overflow: hidden !important;
