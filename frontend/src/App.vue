@@ -34,11 +34,16 @@ watch(
     // 蓝色方案采用定义好的 --primary 颜色 (#2563EB)，其它页面采用 --bg-base (#F8FAFC)
     const themeColor = isBluePage ? '#2563EB' : '#F8FAFC'
     
-    // 1. 动态更新 html 的背景色 (这是 iOS Safari 顶部状态栏变色的关键，它控制状态栏与弹性区域背景)
-    document.documentElement.style.setProperty('background-color', themeColor, 'important')
-    
-    // 2. 动态更新 body 的背景色 (确保 body 底层始终是干净的浅灰白色，在页面切换或回弹时绝不穿帮露出蓝色)
-    document.body.style.setProperty('background-color', '#F8FAFC', 'important')
+    if (isBluePage) {
+      // 1. 对于蓝色主页面，使用高级渐变背景 (顶部 220px 纯蓝适配状态栏和 Header，其余部分为浅灰白色，完美杜绝漏蓝问题)
+      const gradient = 'linear-gradient(to bottom, #2563EB 0%, #2563EB 220px, #F8FAFC 220px, #F8FAFC 100%)'
+      document.documentElement.style.setProperty('background', gradient, 'important')
+      document.body.style.setProperty('background', gradient, 'important')
+    } else {
+      // 2. 其它页面为纯浅灰色
+      document.documentElement.style.setProperty('background', '#F8FAFC', 'important')
+      document.body.style.setProperty('background', '#F8FAFC', 'important')
+    }
     
     // 3. 动态更新 theme-color 元标签 (用于安卓 Chrome 与 iOS 15+ 系统的沉浸式系统栏)
     let meta = document.querySelector('meta[name="theme-color"]')
