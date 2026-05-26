@@ -121,7 +121,7 @@ onMounted(() => {
 
 .blue-header {
   background: var(--primary);
-  padding: 52px 20px 24px;
+  padding: calc(env(safe-area-inset-top) + 16px) 20px 24px;
   display: flex;
   flex-direction: column;
   gap: 16px;

@@ -104,7 +104,7 @@ async function handleLogin() {
   flex-direction: column;
 }
 .blue-accent {
-  height: 80px;
+  height: calc(env(safe-area-inset-top) + 40px);
   background: var(--primary);
   flex-shrink: 0;
 }

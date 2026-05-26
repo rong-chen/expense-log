@@ -252,7 +252,7 @@ function openEditPage(bill: any) {
 
 .blue-header {
   background: var(--primary);
-  padding: 48px 20px 20px;
+  padding: calc(env(safe-area-inset-top) + 16px) 20px 20px;
   display: flex;
   flex-direction: column;
   gap: 16px;
