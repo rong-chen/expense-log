@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import { RouterView, useRoute, useRouter } from 'vue-router'
 import BottomNav from '@/components/layout/BottomNav.vue'
 import ReloadPrompt from '@/components/ReloadPrompt.vue'
@@ -22,6 +22,33 @@ checkMobile()
 router.isReady().then(() => {
   isRouterReady.value = true
 })
+
+// 🌟 动态监控路由变化，更新系统栏与 HTML/Body 背景色 (实现网页着色与状态栏主题色无缝融合)
+watch(
+  () => route.path,
+  (newPath) => {
+    // 总览 (/home)、明细 (/bills)、我的 (/profile) 是一级蓝色页面
+    const bluePages = ['/home', '/bills', '/profile']
+    const isBluePage = bluePages.includes(newPath)
+    
+    // 蓝色方案采用定义好的 --primary 颜色 (#2563EB)，其它页面采用 --bg-base (#F8FAFC)
+    const themeColor = isBluePage ? '#2563EB' : '#F8FAFC'
+    
+    // 1. 动态更新 html 和 body 的背景色 (这是 iOS Safari 顶部状态栏变色的决定性属性)
+    document.documentElement.style.setProperty('background-color', themeColor, 'important')
+    document.body.style.setProperty('background-color', themeColor, 'important')
+    
+    // 2. 动态更新 theme-color 元标签 (用于安卓 Chrome 与 iOS 15+ 系统的沉浸式系统栏)
+    let meta = document.querySelector('meta[name="theme-color"]')
+    if (!meta) {
+      meta = document.createElement('meta')
+      meta.setAttribute('name', 'theme-color')
+      document.head.appendChild(meta)
+    }
+    meta.setAttribute('content', themeColor)
+  },
+  { immediate: true }
+)
 </script>
 
 <template>
@@ -58,7 +85,7 @@ router.isReady().then(() => {
   height: 100vh !important;
   height: 100% !important;
   width: 100% !important;
-  background-color: var(--bg-base);
+  background-color: inherit; /* 🌟 继承 body 的背景色，使其动态同步 */
   display: flex;
   flex-direction: column;
   /* 强力截断：如果在 100vw 之外的任何元素全部斩底裁掉！ */
