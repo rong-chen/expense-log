@@ -18,10 +18,21 @@ function checkMobile() {
   isMobile.value = mobileKeywords.test(ua) || hasTouchScreen
 }
 checkMobile()
-
 router.isReady().then(() => {
   isRouterReady.value = true
 })
+
+// 🌟 核心解决方案：锁定 html 为蓝色以渲染系统状态栏，锁定 body 为浅灰白以保证底盘极其纯净、绝不漏色
+document.documentElement.style.setProperty('background-color', '#2563EB', 'important')
+document.body.style.setProperty('background-color', '#F8FAFC', 'important')
+
+let meta = document.querySelector('meta[name="theme-color"]')
+if (!meta) {
+  meta = document.createElement('meta')
+  meta.setAttribute('name', 'theme-color')
+  document.head.appendChild(meta)
+}
+meta.setAttribute('content', '#2563EB')
 </script>
 
 <template>
@@ -58,7 +69,7 @@ router.isReady().then(() => {
   height: 100vh !important;
   height: 100% !important;
   width: 100% !important;
-  background-color: var(--bg-base);
+  background-color: transparent !important; /* 🌟 设为透明，让 body 的浅灰白色自然呈现 */
   display: flex;
   flex-direction: column;
   /* 强力截断：如果在 100vw 之外的任何元素全部斩底裁掉！ */
