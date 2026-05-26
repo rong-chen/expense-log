@@ -23,39 +23,18 @@ router.isReady().then(() => {
   isRouterReady.value = true
 })
 
-// 🌟 动态监控路由变化，更新系统栏与 HTML/Body 背景色 (实现网页着色与状态栏主题色无缝融合)
-watch(
-  () => route.path,
-  (newPath) => {
-    // 总览 (/home)、明细 (/bills)、我的 (/profile) 是一级蓝色页面
-    const bluePages = ['/home', '/bills', '/profile']
-    const isBluePage = bluePages.includes(newPath)
-    
-    // 蓝色方案采用定义好的 --primary 颜色 (#2563EB)，其它页面采用 --bg-base (#F8FAFC)
-    const themeColor = isBluePage ? '#2563EB' : '#F8FAFC'
-    
-    if (isBluePage) {
-      // 1. 对于蓝色主页面，使用高级渐变背景 (顶部 220px 纯蓝适配状态栏和 Header，其余部分为浅灰白色，完美杜绝漏蓝问题)
-      const gradient = 'linear-gradient(to bottom, #2563EB 0%, #2563EB 220px, #F8FAFC 220px, #F8FAFC 100%)'
-      document.documentElement.style.setProperty('background', gradient, 'important')
-      document.body.style.setProperty('background', gradient, 'important')
-    } else {
-      // 2. 其它页面为纯浅灰色
-      document.documentElement.style.setProperty('background', '#F8FAFC', 'important')
-      document.body.style.setProperty('background', '#F8FAFC', 'important')
-    }
-    
-    // 3. 动态更新 theme-color 元标签 (用于安卓 Chrome 与 iOS 15+ 系统的沉浸式系统栏)
-    let meta = document.querySelector('meta[name="theme-color"]')
-    if (!meta) {
-      meta = document.createElement('meta')
-      meta.setAttribute('name', 'theme-color')
-      document.head.appendChild(meta)
-    }
-    meta.setAttribute('content', themeColor)
-  },
-  { immediate: true }
-)
+// 🌟 全局统一系统状态栏与背景色 (由于全站页面顶部均有蓝色元素，现将状态栏全局锁定为蓝色，底部为浅灰白，实现完美的沉浸式与不漏色设计)
+const gradient = 'linear-gradient(to bottom, #2563EB 0%, #2563EB 220px, #F8FAFC 220px, #F8FAFC 100%)'
+document.documentElement.style.setProperty('background', gradient, 'important')
+document.body.style.setProperty('background', gradient, 'important')
+
+let meta = document.querySelector('meta[name="theme-color"]')
+if (!meta) {
+  meta = document.createElement('meta')
+  meta.setAttribute('name', 'theme-color')
+  document.head.appendChild(meta)
+}
+meta.setAttribute('content', '#2563EB')
 </script>
 
 <template>
