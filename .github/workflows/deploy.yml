@@ -29,6 +29,9 @@ jobs:
           # 🌟 借助 GitHub 畅通网络，在云端极速拉取并打包 pgvector 镜像
           docker pull pgvector/pgvector:pg15
           docker save -o pgvector.tar pgvector/pgvector:pg15
+          
+          # 🌟 修复权限：因为 docker save 生成的文件属于 root，需要向普通用户开放读取权限以进行 SCP 传送
+          sudo chmod 644 pgvector.tar
 
       - name: SCP Backend Binary & pgvector Image to Server
         uses: appleboy/scp-action@v0.1.7
