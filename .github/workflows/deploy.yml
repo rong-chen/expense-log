@@ -20,31 +20,64 @@ jobs:
           go-version: '1.22' # 保持与你本地 Go 版本兼容
           cache-dependency-path: server/go.sum
 
-      - name: Build Go Backend
+      - name: Build Go Backend & Pull pgvector Image (Network Bypass)
         run: |
           cd server
           # 禁用 CGO，指定目标系统为 Linux AMD64（大多数云服务器架构）
           CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-w -s" -o expense-log-server ./cmd/main.go
+          
+          # 🌟 借助 GitHub 畅通网络，在云端极速拉取并打包 pgvector 镜像
+          docker pull pgvector/pgvector:15-pgvector
+          docker save -o pgvector.tar pgvector/pgvector:15-pgvector
 
-      - name: SCP Backend Binary to Server
+      - name: SCP Backend Binary & pgvector Image to Server
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
-          source: "server/expense-log-server"
+          source: "server/expense-log-server,server/pgvector.tar"
           target: "/data/expense-log"
           strip_components: 1 # 去掉外层的 server/ 目录，直接传文件进去
 
-      - name: Restart Backend Service
+      - name: Restart Backend Service & Load pgvector
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
+            # 1. 赋予执行权限并重启后端 API 服务
             chmod +x /data/expense-log/expense-log-server
             systemctl restart expense-log
+            
+            # 2. 🌟 自动化闭环：如果检测到新上传的 pgvector.tar 压缩包，自动导入并静默重建数据库容器
+            if [ -f /data/expense-log/pgvector.tar ]; then
+              echo "检测到新上传的数据库镜像包，正在静默导入 (这可能需要 1-2 分钟)..."
+              docker load -i /data/expense-log/pgvector.tar
+              
+              echo "正在安全停止并重建数据库容器..."
+              docker stop expense-log-postgres || true
+              docker rm expense-log-postgres || true
+              
+              docker run -d \
+                --name expense-log-postgres \
+                --restart always \
+                -e POSTGRES_USER=expense_log_admin \
+                -e POSTGRES_PASSWORD='expense_log_postgres@!!' \
+                -e POSTGRES_DB=expense_log \
+                -e TZ=Asia/Shanghai \
+                -v /data/expense-log/pgdata:/var/lib/postgresql/data \
+                -p 5433:5432 \
+                pgvector/pgvector:15-pgvector
+                
+              # 导入成功后自动清理，省下服务器空间
+              rm -f /data/expense-log/pgvector.tar
+              echo "数据库容器重建成功，且 pgvector 插件已就绪！"
+              
+              # 再次重启后端让其识别新数据库类型与表结构
+              systemctl restart expense-log
+            fi
 
   deploy-frontend:
     name: Build & Deploy Frontend
