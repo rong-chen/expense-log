@@ -335,10 +335,53 @@ func (ctrl *mcpController) HandleSSE(c *gin.Context) {
 func (ctrl *mcpController) HandleMessage(c *gin.Context) {
 	clientID := c.Query("client_id")
 	if clientID == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Missing client_id"})
+		// ==========================================
+		// 支持无状态同步 POST 请求 (MCP over direct POST)
+		// ==========================================
+		// 1. 校验 API Key 凭证 (支持 Query 参数或 Authorization Bearer 头部)
+		apiKey := c.Query("api_key")
+		if apiKey == "" {
+			authHeader := c.GetHeader("Authorization")
+			if len(authHeader) > 7 && authHeader[:7] == "Bearer " {
+				apiKey = authHeader[7:]
+			}
+		}
+
+		if apiKey == "" {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Missing client_id or api_key"})
+			return
+		}
+
+		var mcpKey model.MCPKey
+		if err := ctrl.db.First(&mcpKey, "key = ?", apiKey).Error; err != nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid API Key"})
+			return
+		}
+
+		if mcpKey.Status != "approved" {
+			c.JSON(http.StatusForbidden, gin.H{"error": "API Key is not approved or has been revoked"})
+			return
+		}
+
+		var req JSONRPCRequest
+		if err := c.ShouldBindJSON(&req); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"jsonrpc": "2.0",
+				"id":      nil,
+				"error":   gin.H{"code": -32700, "message": "Parse error"},
+			})
+			return
+		}
+
+		// 2. 同步执行并直接在 Response Body 中返回标准 JSON-RPC 2.0 结果
+		resp := ctrl.handleRPC(mcpKey.UserID, req)
+		c.JSON(http.StatusOK, resp)
 		return
 	}
 
+	// ==========================================
+	// 异步 SSE 投递流程
+	// ==========================================
 	// 1. 查找活跃的 SSE 会话以保证多租户环境安全
 	ctrl.mu.RLock()
 	client, exists := ctrl.clients[clientID]
@@ -362,8 +405,8 @@ func (ctrl *mcpController) HandleMessage(c *gin.Context) {
 	c.Status(http.StatusAccepted)
 }
 
-// 异步处理具体的 JSON-RPC 消息并通过 SSE 返回
-func (ctrl *mcpController) processRPC(client *SSEClient, req JSONRPCRequest) {
+// handleRPC 核心方法：同步处理具体的 JSON-RPC 2.0 请求，并保证租户隔离
+func (ctrl *mcpController) handleRPC(userID uuid.UUID, req JSONRPCRequest) JSONRPCResponse {
 	var resp JSONRPCResponse
 	resp.JSONRPC = "2.0"
 	resp.ID = req.ID
@@ -382,7 +425,7 @@ func (ctrl *mcpController) processRPC(client *SSEClient, req JSONRPCRequest) {
 		}
 
 	case "notifications/initialized":
-		return // 仅仅是通知，不需要回传响应
+		resp.Result = "ok" // 同步请求可直接返回 ok
 
 	case "tools/list":
 		// 返回我们能支持的记账核心工具
@@ -449,7 +492,7 @@ func (ctrl *mcpController) processRPC(client *SSEClient, req JSONRPCRequest) {
 			break
 		}
 
-		result, err := ctrl.executeTool(client.UserID, callParams.Name, callParams.Arguments)
+		result, err := ctrl.executeTool(userID, callParams.Name, callParams.Arguments)
 		if err != nil {
 			resp.Error = gin.H{"code": -32603, "message": err.Error()}
 		} else {
@@ -458,6 +501,16 @@ func (ctrl *mcpController) processRPC(client *SSEClient, req JSONRPCRequest) {
 
 	default:
 		resp.Error = gin.H{"code": -32601, "message": "Method not found"}
+	}
+
+	return resp
+}
+
+// 异步处理具体的 JSON-RPC 消息并通过 SSE 返回
+func (ctrl *mcpController) processRPC(client *SSEClient, req JSONRPCRequest) {
+	resp := ctrl.handleRPC(client.UserID, req)
+	if req.Method == "notifications/initialized" {
+		return // 仅仅是通知，不需要回传响应
 	}
 
 	// 序列化回执，发送回 SSE 信道
