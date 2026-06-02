@@ -311,7 +311,11 @@ func (ctrl *mcpController) HandleSSE(c *gin.Context) {
 
 	// 4. 发送初始化 endpoint 事件给客户端，指示未来的消息投递地址
 	// 按照 MCP SSE 传输规范：event: endpoint, data: 投递 URL
-	messageURL := fmt.Sprintf("/api/v1/mcp/message?client_id=%s", clientID)
+	scheme := "https"
+	if c.Request.TLS == nil && c.Request.Header.Get("X-Forwarded-Proto") != "https" {
+		scheme = "http"
+	}
+	messageURL := fmt.Sprintf("%s://%s/api/v1/mcp/message?client_id=%s&api_key=%s", scheme, c.Request.Host, clientID, apiKey)
 	c.SSEvent("endpoint", messageURL)
 	c.Writer.Flush()
 

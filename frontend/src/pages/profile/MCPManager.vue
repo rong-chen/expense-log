@@ -300,15 +300,6 @@ function switchTab(tab: 'user' | 'admin') {
 										<code>{{ k.key }}</code>
 									</div>
 								</div>
-
-								<div class="integration-guide">
-									<strong>💡 快速接入指南：</strong>
-									<p>在您的 Cursor 或 Cline 配置中，添加远程 SSE MCP 服务：</p>
-									<ul>
-										<li>地址：复制上方的连接地址</li>
-										<li>认证头：<code>Authorization: Bearer {{ k.key.substring(0, 12) }}...</code></li>
-									</ul>
-								</div>
 							</div>
 						</div>
 					</div>
