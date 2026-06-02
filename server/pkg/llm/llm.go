@@ -10,6 +10,8 @@ import (
 type Provider interface {
 	// AnalyzeImage 传入图片 URL 和提示词，返回模型原始文本响应
 	AnalyzeImage(ctx context.Context, imageURL, prompt string) (string, error)
+	// GetEmbedding 传入文本，返回其高维向量表示 (如 1536 维)
+	GetEmbedding(ctx context.Context, text string) ([]float32, error)
 }
 
 // Config LLM 配置

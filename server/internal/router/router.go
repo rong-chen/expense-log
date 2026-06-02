@@ -73,6 +73,9 @@ func Start(db *gorm.DB, rdb *redis.Client, cfg *model.Config) {
 	// 注册 Ukey 自动鉴权路由
 	item.NewUkeyRouter(v1, db, rdb, cfg.JWT, cfg.Server.GetDomain())
 
+	// 注册 Model Context Protocol (MCP) 远程数据共享与审批鉴权服务路由
+	item.NewMCPRouter(v1, db, rdb, cfg.JWT, cfg.Server.GetDomain(), llmProvider)
+
 	// 注册邮箱路由，并返回 emailService
 	emailServ := item.NewEmailRouter(v1, db, rdb, cfg)
 

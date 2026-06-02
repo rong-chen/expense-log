@@ -2,8 +2,12 @@ package model
 
 import (
 	"crypto/sha256"
+	"database/sql/driver"
+	"errors"
 	"expense-log/global"
 	"fmt"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -43,6 +47,7 @@ type Bill struct {
 	OriginalFile string     `gorm:"type:varchar(500)" json:"original_file"`       // 原始文件路径
 	RawContent   string     `gorm:"type:text" json:"-"`                           // VLM 原始返回 (不传给前端)
 	Tags         []Tag      `gorm:"many2many:bill_tags;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"tags,omitempty"`   // 账单标签
+	Embedding    Vector     `gorm:"type:vector(1536)" json:"-"`                  // 🌟 语义向量，类型为 pgvector vector(1536)
 }
 
 func (b *Bill) BeforeCreate(tx *gorm.DB) (err error) {
@@ -71,4 +76,60 @@ func GenerateFingerprint(userID uuid.UUID, transactionNo string, amount float64,
 	}
 	hash := sha256.Sum256([]byte(raw))
 	return fmt.Sprintf("%x", hash)
+}
+
+// Vector 自定义数据库向量映射类型 (支持 pgvector)
+type Vector []float32
+
+// Value 实现 driver.Valuer 接口，将 []float32 序列化为 PostgreSQL 识别的 '[x,y,z...]' 字符串格式
+func (v Vector) Value() (driver.Value, error) {
+	if len(v) == 0 {
+		return nil, nil
+	}
+	var sb strings.Builder
+	sb.WriteByte('[')
+	for idx, val := range v {
+		if idx > 0 {
+			sb.WriteByte(',')
+		}
+		sb.WriteString(strconv.FormatFloat(float64(val), 'f', -1, 32))
+	}
+	sb.WriteByte(']')
+	return sb.String(), nil
+}
+
+// Scan 实现 sql.Scanner 接口，从数据库反序列化 pgvector 格式回到 Vector 类型
+func (v *Vector) Scan(src interface{}) error {
+	if src == nil {
+		*v = nil
+		return nil
+	}
+
+	var str string
+	switch val := src.(type) {
+	case string:
+		str = val
+	case []byte:
+		str = string(val)
+	default:
+		return errors.New("failed to scan vector: unsupported type")
+	}
+
+	str = strings.Trim(str, "[]")
+	if str == "" {
+		*v = make(Vector, 0)
+		return nil
+	}
+
+	parts := strings.Split(str, ",")
+	res := make(Vector, len(parts))
+	for idx, p := range parts {
+		fVal, err := strconv.ParseFloat(strings.TrimSpace(p), 32)
+		if err != nil {
+			return fmt.Errorf("failed to parse vector element: %w", err)
+		}
+		res[idx] = float32(fVal)
+	}
+	*v = res
+	return nil
 }

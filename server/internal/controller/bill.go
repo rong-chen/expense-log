@@ -342,6 +342,9 @@ func (ctrl *billController) UploadImageReceipt(c *gin.Context) {
 				RawContent:      rawResult,
 			}
 
+			// 自动计算当前账单的语义特征向量 (用于未来 AI 智能检索与分析)
+			vectorizeBill(ctx, bill, ctrl.provider)
+
 			if err := ctrl.db.Create(bill).Error; err == nil {
 				successCount++
 				ctrl.serv.InvalidateLedgerCache(userID, ledgerID)
@@ -582,10 +585,32 @@ func (ctrl *billController) CreateBill(c *gin.Context) {
 		TransactionDate: t,
 	}
 
+	// 自动计算当前账单的语义特征向量 (用于未来 AI 智能检索与分析)
+	vectorizeBill(c.Request.Context(), bill, ctrl.provider)
+
 	if err := ctrl.db.Create(bill).Error; err != nil {
 		response.Fail(c, http.StatusInternalServerError, 50000, "录入失败: "+err.Error())
 		return
 	}
 	ctrl.serv.InvalidateLedgerCache(userID, ledgerID)
 	response.Success(c, "success")
+}
+
+// vectorizeBill 使用大模型对账单明细内容进行高维向量化
+func vectorizeBill(ctx context.Context, bill *model.Bill, provider llm.Provider) {
+	if provider == nil {
+		return
+	}
+	desc := fmt.Sprintf("账单明细: 商户是 %s, 消费金额 %.2f 元, 分类属于 %s, 备注为: %s, 交易时间是 %s",
+		bill.Merchant, bill.Amount, bill.Category, bill.Remark, bill.TransactionDate.Format("2006-01-02"))
+
+	ctxWithTimeout, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+
+	emb, err := provider.GetEmbedding(ctxWithTimeout, desc)
+	if err == nil {
+		bill.Embedding = model.Vector(emb)
+	} else {
+		fmt.Printf("⚠️ 自动计算账单向量失败 (图片或普通录单跳过向量化): %v\n", err)
+	}
 }

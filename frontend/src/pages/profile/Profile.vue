@@ -2,7 +2,7 @@
 import { ref, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { useRouter } from 'vue-router'
-import { Lock, LogOut, ChevronRight, Settings, CalendarClock, ShieldCheck, Tag } from 'lucide-vue-next'
+import { Lock, LogOut, ChevronRight, Settings, CalendarClock, ShieldCheck, Tag, Sparkles } from 'lucide-vue-next'
 
 const auth = useAuthStore()
 const router = useRouter()
@@ -66,6 +66,16 @@ onMounted(() => {
           </div>
           <div class="menu-content">
             <span>系统设置</span>
+            <ChevronRight :size="18" class="chevron" />
+          </div>
+        </div>
+
+        <div class="menu-item" @click="router.push('/mcp')">
+          <div class="menu-icon" style="background: rgba(16, 185, 129, 0.08); color: #10B981">
+            <Sparkles :size="20" />
+          </div>
+          <div class="menu-content">
+            <span>AI 智能助理 (MCP)</span>
             <ChevronRight :size="18" class="chevron" />
           </div>
         </div>

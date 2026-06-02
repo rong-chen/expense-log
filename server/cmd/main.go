@@ -32,6 +32,7 @@ func main() {
 		&model.Tag{},
 		&model.Ledger{},
 		&model.LedgerMember{},
+		&model.MCPKey{},
 	); err != nil {
 		panic(fmt.Errorf("表结构迁移失败: %w", err))
 	}

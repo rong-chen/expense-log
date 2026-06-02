@@ -22,9 +22,6 @@ router.isReady().then(() => {
   isRouterReady.value = true
 })
 
-// 🌟 核心解决方案：锁定 html 和 body 为纯浅灰白 (#F8FAFC) 确保整站底盘纯净不漏色，且顶部状态栏自然沉浸在蓝色的 Header 中
-document.documentElement.style.setProperty('background-color', '#F8FAFC', 'important')
-document.body.style.setProperty('background-color', '#F8FAFC', 'important')
 
 let meta = document.querySelector('meta[name="theme-color"]')
 if (!meta) {
@@ -66,33 +63,18 @@ meta.setAttribute('content', '#2563EB')
 <style>
 /* CSS 重置与移动端适配基础样式由 index.css 提供 */
 #app-root {
-  height: 100vh !important; /* 🌟 恢复 100vh，强制锁定全屏高度，彻底粉碎 PWA 模式下 nested 100% 高度坍塌缩短 Bug */
-  width: 100% !important;
-  background-color: transparent !important; /* 🌟 设为透明，让 body 的浅灰白色自然呈现 */
-  display: flex;
-  flex-direction: column;
-  /* 强力截断：如果在 100vw 之外的任何元素全部斩底裁掉！ */
-  overflow: hidden !important;
-  overflow-x: hidden !important;
-  overflow-y: hidden !important;
+  min-height: 100vh;
+  width: 100%;
   position: relative;
-  /* 防御级遮盖：补偿所有缩放舍入导致的 1px 细线缝隙 */
-  margin-left: -1px;
-  margin-right: -1px;
-  padding-left: 1px;
-  padding-right: 1px;
 }
 
 .main-content {
-  flex: 1;
-  overflow-y: auto;
-  overflow-x: hidden;
-  -webkit-overflow-scrolling: touch; /* iOS 平滑滚动支持 */
+  width: 100%;
 }
 
-/* 如果有 BottomNav，则留出足够的底部空间，确保最下方卡片能滚动到可视区中部 */
+/* 如果有 BottomNav，则留出足够的底部空间，确保最下方卡片不会被底部的 TabBar 遮挡 */
 .main-content.has-bottom-nav {
-  padding-bottom: calc(96px + env(safe-area-inset-bottom));
+  padding-bottom: calc(80px + env(safe-area-inset-bottom));
 }
 
 /* 全屏页面切入/返回过渡动画 */

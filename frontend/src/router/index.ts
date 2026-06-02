@@ -23,6 +23,12 @@ const router = createRouter({
       meta: { requiresAuth: true, hideBottomNav: true }
     },
     {
+      path: '/mcp',
+      name: 'MCPManager',
+      component: () => import('../pages/profile/MCPManager.vue'),
+      meta: { requiresAuth: true, hideBottomNav: true }
+    },
+    {
       path: '/recurring',
       name: 'RecurringManager',
       component: () => import('../pages/profile/RecurringManager.vue'),

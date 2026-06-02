@@ -21,17 +21,18 @@ import { Home, User, Receipt } from 'lucide-vue-next'
 
 <style scoped>
 .bottom-nav {
-  /* 🌟 从 position: fixed 悬浮定位改为 Flex 弹性流布局，彻底根除 iOS 底部间隙与漂浮偏上 Bug */
-  position: relative;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
   background: var(--bg-card);
   border-top: 1px solid var(--border);
   display: flex;
   justify-content: space-around;
-  align-items: stretch;
+  align-items: center;
   z-index: 1000;
   padding: 8px 0;
   padding-bottom: calc(8px + env(safe-area-inset-bottom));
-  flex-shrink: 0; /* 🌟 保证在键盘弹出或高度压缩时，导航栏绝不会被挤压变形 */
 }
 .nav-item {
   display: flex;
