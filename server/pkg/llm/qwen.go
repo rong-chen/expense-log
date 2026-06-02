@@ -61,11 +61,11 @@ func (q *qwenProvider) AnalyzeImage(ctx context.Context, imageURL, prompt string
 	return resp.Choices[0].Message.Content, nil
 }
 
-// GetEmbedding 阿里百炼文本向量化接口 (采用 text-embedding-v3 模型)
+// GetEmbedding 阿里百炼文本向量化接口 (采用 text-embedding-v2 模型，输出固定的 1536 维向量)
 func (q *qwenProvider) GetEmbedding(ctx context.Context, text string) ([]float32, error) {
 	resp, err := q.client.CreateEmbeddings(ctx, openai.EmbeddingRequest{
 		Input: []string{text},
-		Model: "text-embedding-v3", // 或者是 "text-embedding-v2"
+		Model: "text-embedding-v2",
 	})
 	if err != nil {
 		return nil, fmt.Errorf("qwen embedding api error: %w", err)
