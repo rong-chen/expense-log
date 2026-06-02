@@ -22,6 +22,9 @@ func InitPostgres(cfg model.PostgresConfig) *gorm.DB {
 		panic(fmt.Sprintf("数据库连接失败: %v", err))
 	}
 
+	// 🌟 自动激活 pgvector 插件 (建立 vector 类型，防止后续 AutoMigrate 报错)
+	_ = DB.Exec("CREATE EXTENSION IF NOT EXISTS vector;")
+
 	// 2. 配置连接池 (从你的 config.yaml 获取参数)
 	sqlDB, _ := DB.DB()
 	sqlDB.SetMaxOpenConns(cfg.MaxOpenConns)
