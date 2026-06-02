@@ -55,10 +55,10 @@ onMounted(async () => {
 
 <style scoped>
 .splash-screen {
-  position: relative;
-  height: 100vh;
-  height: 100%;
+  position: fixed;
+  inset: 0;
   width: 100vw;
+  height: 100vh;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -67,6 +67,7 @@ onMounted(async () => {
   overflow: hidden;
   /* 视觉重心上移，让 Logo 看起来在"黄金分割点"而不是数学正中 */
   padding-bottom: 16vh;
+  z-index: 9999;
 }
 
 /* 沉浸式环境光效 */

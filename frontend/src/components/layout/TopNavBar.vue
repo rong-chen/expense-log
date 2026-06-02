@@ -26,8 +26,8 @@ function goBack() {
 .top-nav-bar {
   position: fixed;
   top: 0;
-  left: -1px;
-  right: -1px;
+  left: 0;
+  right: 0;
   height: 56px;
   background: var(--primary); /* 🌟 改为定义的蓝色方案 */
   display: flex;
@@ -55,13 +55,18 @@ function goBack() {
   opacity: 0.7;
 }
 .title {
-  font-size: 1.05rem;
+  font-size: 1.02rem;
   font-weight: 700;
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
   margin: 0;
   color: #ffffff; /* 🌟 标题文字改为白色 */
+  max-width: 60%; /* 🌟 限制宽度，防止溢出或重叠按钮 */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: center;
 }
 .right-slot {
   min-width: 44px;
