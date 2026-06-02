@@ -27,8 +27,8 @@ jobs:
           CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-w -s" -o expense-log-server ./cmd/main.go
           
           # 🌟 借助 GitHub 畅通网络，在云端极速拉取并打包 pgvector 镜像
-          docker pull pgvector/pgvector:15-pgvector
-          docker save -o pgvector.tar pgvector/pgvector:15-pgvector
+          docker pull pgvector/pgvector:pg15
+          docker save -o pgvector.tar pgvector/pgvector:pg15
 
       - name: SCP Backend Binary & pgvector Image to Server
         uses: appleboy/scp-action@v0.1.7
@@ -69,7 +69,7 @@ jobs:
                 -e TZ=Asia/Shanghai \
                 -v /data/expense-log/pgdata:/var/lib/postgresql/data \
                 -p 5433:5432 \
-                pgvector/pgvector:15-pgvector
+                pgvector/pgvector:pg15
                 
               # 导入成功后自动清理，省下服务器空间
               rm -f /data/expense-log/pgvector.tar
