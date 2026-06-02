@@ -460,10 +460,14 @@ func (ctrl *mcpController) handleRPC(userID uuid.UUID, req JSONRPCRequest) JSONR
 				},
 				{
 					"name":        "get_expense_stats",
-					"description": "获取用户当月整体收支统计及环比分析",
+					"description": "获取用户指定或当前（年、月、日）整体收支统计及财务汇总",
 					"inputSchema": gin.H{
 						"type": "object",
-						"properties": gin.H{},
+						"properties": gin.H{
+							"year":  gin.H{"type": "integer", "description": "指定统计年份，例如 2026"},
+							"month": gin.H{"type": "integer", "description": "指定统计月份，1-12，例如 6"},
+							"day":   gin.H{"type": "integer", "description": "指定统计具体日期，1-31，例如 2"},
+						},
 					},
 				},
 				{
@@ -476,6 +480,14 @@ func (ctrl *mcpController) handleRPC(userID uuid.UUID, req JSONRPCRequest) JSONR
 							"limit": gin.H{"type": "integer", "description": "返回条数，默认5"},
 						},
 						"required": []string{"query"},
+					},
+				},
+				{
+					"name":        "get_current_time",
+					"description": "获取服务器当前的精确年月日、时间和星期，供大模型明确当前时间以做相对时间分析(例如：今天、上个月等)",
+					"inputSchema": gin.H{
+						"type": "object",
+						"properties": gin.H{},
 					},
 				},
 			},
@@ -528,6 +540,24 @@ func (ctrl *mcpController) processRPC(client *SSEClient, req JSONRPCRequest) {
 // 核心执行工具：多租户沙箱隔离的数据处理
 func (ctrl *mcpController) executeTool(userID uuid.UUID, toolName string, args map[string]interface{}) (interface{}, error) {
 	switch toolName {
+	case "get_current_time":
+		now := time.Now()
+		weekdayCn := map[time.Weekday]string{
+			time.Sunday:    "星期日",
+			time.Monday:    "星期一",
+			time.Tuesday:   "星期二",
+			time.Wednesday: "星期三",
+			time.Thursday:  "星期四",
+			time.Friday:    "星期五",
+			time.Saturday:  "星期六",
+		}
+		timeText := fmt.Sprintf("当前服务器时间为: %s (%s)", now.Format("2006-01-02 15:04:05"), weekdayCn[now.Weekday()])
+		return gin.H{
+			"content": []gin.H{
+				{"type": "text", "text": timeText},
+			},
+		}, nil
+
 	case "list_bills":
 		// 根据租户进行安全隔离查询
 		tx := ctrl.db.Where("user_id = ?", userID)
@@ -630,10 +660,64 @@ func (ctrl *mcpController) executeTool(userID uuid.UUID, toolName string, args m
 		}, nil
 
 	case "get_expense_stats":
-		// 获取本月收支汇总
+		// 获取收支汇总
 		now := time.Now()
-		startOfMonth := time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, time.Local)
-		endOfMonth := startOfMonth.AddDate(0, 1, 0).Add(-time.Second)
+		year := now.Year()
+		month := int(now.Month())
+		day := 0
+
+		// 从 args 提取参数并解析
+		if yVal, exists := args["year"]; exists {
+			switch v := yVal.(type) {
+			case float64:
+				year = int(v)
+			case string:
+				fmt.Sscanf(v, "%d", &year)
+			}
+		}
+		if mVal, exists := args["month"]; exists {
+			switch v := mVal.(type) {
+			case float64:
+				month = int(v)
+			case string:
+				fmt.Sscanf(v, "%d", &month)
+			}
+		}
+		if dVal, exists := args["day"]; exists {
+			switch v := dVal.(type) {
+			case float64:
+				day = int(v)
+			case string:
+				fmt.Sscanf(v, "%d", &day)
+			}
+		}
+
+		var startDate, endDate time.Time
+		var periodText string
+
+		if day > 0 {
+			// 精确到某一天
+			startDate = time.Date(year, time.Month(month), day, 0, 0, 0, 0, time.Local)
+			endDate = startDate.AddDate(0, 0, 1).Add(-time.Second)
+			periodText = fmt.Sprintf("%d年%02d月%02d日", year, month, day)
+		} else if args["month"] != nil || args["year"] != nil {
+			if args["month"] == nil {
+				// 仅按年统计
+				startDate = time.Date(year, 1, 1, 0, 0, 0, 0, time.Local)
+				endDate = startDate.AddDate(1, 0, 0).Add(-time.Second)
+				periodText = fmt.Sprintf("%d年年度", year)
+			} else {
+				// 按月统计
+				startDate = time.Date(year, time.Month(month), 1, 0, 0, 0, 0, time.Local)
+				endDate = startDate.AddDate(0, 1, 0).Add(-time.Second)
+				periodText = fmt.Sprintf("%d年%02d月", year, month)
+			}
+		} else {
+			// 默认当前月
+			startDate = time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, time.Local)
+			endDate = startDate.AddDate(0, 1, 0).Add(-time.Second)
+			periodText = fmt.Sprintf("本月（%d年%02d月）", now.Year(), now.Month())
+		}
 
 		var totalExpense float64
 		var totalIncome float64
@@ -641,7 +725,7 @@ func (ctrl *mcpController) executeTool(userID uuid.UUID, toolName string, args m
 		// 餐饮、购物、娱乐等通常代表支出，退款或特定收入代表收入
 		// 这里简单归类：Category == "退款" 或者是 "收入" 算收入，其余都计入支出
 		var bills []model.Bill
-		if err := ctrl.db.Where("user_id = ? AND transaction_date BETWEEN ? AND ?", userID, startOfMonth, endOfMonth).Find(&bills).Error; err != nil {
+		if err := ctrl.db.Where("user_id = ? AND transaction_date BETWEEN ? AND ?", userID, startDate, endDate).Find(&bills).Error; err != nil {
 			return nil, fmt.Errorf("拉取统计数据失败: %w", err)
 		}
 
@@ -653,8 +737,8 @@ func (ctrl *mcpController) executeTool(userID uuid.UUID, toolName string, args m
 			}
 		}
 
-		statsText := fmt.Sprintf("📊 本月（%d年%02d月）财务汇总报告：\n- 本月累计支出: ¥%.2f\n- 本月累计收入: ¥%.2f\n- 本月累计记账数: %d 笔\n*注：该数据仅展示当前自然月记账明细的自动计算。*",
-			now.Year(), now.Month(), totalExpense, totalIncome, len(bills))
+		statsText := fmt.Sprintf("📊 %s财务汇总报告：\n- 累计支出: ¥%.2f\n- 累计收入: ¥%.2f\n- 累计记账数: %d 笔\n*注：该数据展示指定时段内记账明细的自动计算。*",
+			periodText, totalExpense, totalIncome, len(bills))
 
 		return gin.H{
 			"content": []gin.H{
