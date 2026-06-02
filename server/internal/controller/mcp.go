@@ -14,6 +14,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 )
 
@@ -40,15 +41,17 @@ type MCPController interface {
 
 type mcpController struct {
 	db          *gorm.DB
+	rdb         *redis.Client
 	domain      string
 	llmProvider llm.Provider
 	clients     map[string]*SSEClient
 	mu          sync.RWMutex
 }
 
-func NewMCPController(db *gorm.DB, domain string, llmProvider llm.Provider) MCPController {
+func NewMCPController(db *gorm.DB, rdb *redis.Client, domain string, llmProvider llm.Provider) MCPController {
 	return &mcpController{
 		db:          db,
+		rdb:         rdb,
 		domain:      domain,
 		llmProvider: llmProvider,
 		clients:     make(map[string]*SSEClient),
@@ -630,8 +633,16 @@ func (ctrl *mcpController) executeTool(userID uuid.UUID, toolName string, args m
 			}
 		}
 
+		// 获取个人默认账本，避免成为孤立账单
+		var ledger model.Ledger
+		var ledgerIDPtr *uuid.UUID
+		if err := ctrl.db.Where("owner_id = ? AND type = ?", userID, model.LedgerTypePersonal).First(&ledger).Error; err == nil {
+			ledgerIDPtr = &ledger.ID
+		}
+
 		bill := &model.Bill{
 			UserID:          userID,
+			LedgerID:        ledgerIDPtr,
 			Amount:          amount,
 			Merchant:        merchant,
 			Category:        category,
@@ -652,6 +663,15 @@ func (ctrl *mcpController) executeTool(userID uuid.UUID, toolName string, args m
 
 		if err := ctrl.db.Create(bill).Error; err != nil {
 			return nil, fmt.Errorf("账单录入数据库失败: %w", err)
+		}
+
+		// 立即清除 Redis 统计缓存，确保前端能同步看到新记账数据
+		if ctrl.rdb != nil && ledgerIDPtr != nil {
+			ctrl.rdb.Del(context.Background(),
+				fmt.Sprintf("ledger:%s:stats:trend", ledgerIDPtr.String()),
+				fmt.Sprintf("ledger:%s:stats:category", ledgerIDPtr.String()),
+				fmt.Sprintf("ledger:%s:stats:dashboard", ledgerIDPtr.String()),
+			)
 		}
 
 		successText := fmt.Sprintf("🎉 记账录单成功！已安全存入您的账本中：\n账单号: %s\n交易商户: %s\n交易金额: ¥%.2f\n所属分类: %s\n交易日期: %s\n备注信息: %s",
@@ -726,10 +746,24 @@ func (ctrl *mcpController) executeTool(userID uuid.UUID, toolName string, args m
 		var totalExpense float64
 		var totalIncome float64
 
+		// 获取个人默认账本，并将其作为统计的数据隔离边界
+		var ledger model.Ledger
+		var ledgerIDPtr *uuid.UUID
+		if err := ctrl.db.Where("owner_id = ? AND type = ?", userID, model.LedgerTypePersonal).First(&ledger).Error; err == nil {
+			ledgerIDPtr = &ledger.ID
+		}
+
 		// 餐饮、购物、娱乐等通常代表支出，退款或特定收入代表收入
 		// 这里简单归类：Category == "退款" 或者是 "收入" 算收入，其余都计入支出
 		var bills []model.Bill
-		if err := ctrl.db.Where("user_id = ? AND transaction_date BETWEEN ? AND ?", userID, startDate, endDate).Find(&bills).Error; err != nil {
+		query := ctrl.db.Model(&model.Bill{})
+		if ledgerIDPtr != nil {
+			query = query.Where("(ledger_id = ? OR (ledger_id IS NULL AND user_id = ?))", *ledgerIDPtr, userID)
+		} else {
+			query = query.Where("user_id = ?", userID)
+		}
+
+		if err := query.Where("transaction_date BETWEEN ? AND ?", startDate, endDate).Find(&bills).Error; err != nil {
 			return nil, fmt.Errorf("拉取统计数据失败: %w", err)
 		}
 

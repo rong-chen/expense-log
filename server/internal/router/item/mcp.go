@@ -14,7 +14,7 @@ import (
 
 // NewMCPRouter 注册 Model Context Protocol (MCP) 路由端点
 func NewMCPRouter(r *gin.RouterGroup, db *gorm.DB, rdb *redis.Client, jwtCfg model.JWTConfig, domain string, llmProvider llm.Provider) {
-	mcpCtrl := controller.NewMCPController(db, domain, llmProvider)
+	mcpCtrl := controller.NewMCPController(db, rdb, domain, llmProvider)
 	userRepo := repository.NewUserRepository(db)
 
 	// 1. 公共 MCP 标准协议信道 (基于 SSE 传输协议)

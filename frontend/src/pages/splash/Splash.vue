@@ -109,6 +109,7 @@ onMounted(async () => {
   flex-direction: column;
   align-items: center;
   margin-bottom: 40px;
+  flex-shrink: 0;
 }
 .animate-pulse-logo {
   animation: logo-entrance 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
@@ -125,6 +126,7 @@ onMounted(async () => {
   box-shadow: 0 16px 32px rgba(37, 99, 235, 0.3);
   margin-bottom: 24px;
   object-fit: cover;
+  flex-shrink: 0;
 }
 .brand-title {
   font-size: 2rem;
@@ -132,6 +134,7 @@ onMounted(async () => {
   color: var(--text-primary);
   margin: 0;
   letter-spacing: -0.5px;
+  flex-shrink: 0;
 }
 .loading-indicator {
   position: absolute;
