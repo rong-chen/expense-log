@@ -792,8 +792,15 @@ func (ctrl *mcpController) executeTool(userID uuid.UUID, toolName string, args m
 		}
 
 		limit := 5
-		if limVal, exists := args["limit"].(float64); exists {
-			limit = int(limVal)
+		if limVal, exists := args["limit"]; exists {
+			switch v := limVal.(type) {
+			case float64:
+				limit = int(v)
+			case int:
+				limit = v
+			case string:
+				fmt.Sscanf(v, "%d", &limit)
+			}
 		}
 
 		// 1. 调用通义千问 Embedding 接口生成 1536 维查询词特征向量
