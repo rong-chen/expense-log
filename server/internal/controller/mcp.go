@@ -304,6 +304,7 @@ func (ctrl *mcpController) HandleSSE(c *gin.Context) {
 	c.Header("Cache-Control", "no-cache")
 	c.Header("Connection", "keep-alive")
 	c.Header("Access-Control-Allow-Origin", "*")
+	c.Header("X-Accel-Buffering", "no")
 
 	clientID := uuid.New().String()
 	clientChan := make(chan []byte, 100)
