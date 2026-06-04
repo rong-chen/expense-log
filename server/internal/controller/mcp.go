@@ -753,9 +753,6 @@ func (ctrl *mcpController) executeTool(userID uuid.UUID, toolName string, args m
 			periodText = fmt.Sprintf("本月（%d年%02d月）", now.Year(), now.Month())
 		}
 
-		var totalExpense float64
-		var totalIncome float64
-
 		// 获取个人默认账本，并将其作为统计的数据隔离边界
 		var ledger model.Ledger
 		var ledgerIDPtr *uuid.UUID
@@ -764,8 +761,7 @@ func (ctrl *mcpController) executeTool(userID uuid.UUID, toolName string, args m
 		}
 
 		// 餐饮、购物、娱乐等通常代表支出，退款或特定收入代表收入
-		// 这里简单归类：Category == "退款" 或者是 "收入" 算收入，其余都计入支出
-		var bills []model.Bill
+		// 这里在数据库端直接进行单次扫描的聚合计算 (性能极佳，支持海量数据，免除内存与网络带宽瓶颈)
 		query := ctrl.db.Model(&model.Bill{})
 		if ledgerIDPtr != nil {
 			query = query.Where("(ledger_id = ? OR (ledger_id IS NULL AND user_id = ?))", *ledgerIDPtr, userID)
@@ -773,20 +769,24 @@ func (ctrl *mcpController) executeTool(userID uuid.UUID, toolName string, args m
 			query = query.Where("user_id = ?", userID)
 		}
 
-		if err := query.Where("transaction_date BETWEEN ? AND ?", startDate, endDate).Find(&bills).Error; err != nil {
+		type AggResult struct {
+			Expense float64 `gorm:"column:expense"`
+			Income  float64 `gorm:"column:income"`
+			Count   int64   `gorm:"column:count"`
+		}
+		var agg AggResult
+		err := query.Select(`
+			COALESCE(SUM(CASE WHEN category IN ('退款', '收入') THEN amount ELSE 0 END), 0) as income,
+			COALESCE(SUM(CASE WHEN category NOT IN ('退款', '收入') THEN amount ELSE 0 END), 0) as expense,
+			COUNT(*) as count
+		`).Where("transaction_date BETWEEN ? AND ?", startDate, endDate).Scan(&agg).Error
+
+		if err != nil {
 			return nil, fmt.Errorf("拉取统计数据失败: %w", err)
 		}
 
-		for _, b := range bills {
-			if b.Category == "退款" || b.Category == "收入" {
-				totalIncome += b.Amount
-			} else {
-				totalExpense += b.Amount
-			}
-		}
-
 		statsText := fmt.Sprintf("📊 %s财务汇总报告：\n- 累计支出: ¥%.2f\n- 累计收入: ¥%.2f\n- 累计记账数: %d 笔\n*注：该数据展示指定时段内记账明细的自动计算。*",
-			periodText, totalExpense, totalIncome, len(bills))
+			periodText, agg.Expense, agg.Income, agg.Count)
 
 		return gin.H{
 			"content": []gin.H{
