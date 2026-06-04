@@ -266,9 +266,9 @@ type JSONRPCResponse struct {
 	Error   interface{} `json:"error,omitempty"`
 }
 
-// getMCPAPIKey 统一从 Header (Authorization 或 X-API-Key/X-MCP-Key) 与 Query 中获取 API 密钥
+// getMCPAPIKey 仅从 Header (Authorization) 中获取 API 密钥
 func getMCPAPIKey(c *gin.Context) string {
-	// 1. 优先获取 Authorization header (Bearer 模式或直接字符串)
+	// 1. 获取 Authorization header (Bearer 模式或直接字符串)
 	authHeader := c.GetHeader("Authorization")
 	if authHeader != "" {
 		if strings.HasPrefix(authHeader, "Bearer ") {
@@ -276,17 +276,7 @@ func getMCPAPIKey(c *gin.Context) string {
 		}
 		return authHeader
 	}
-
-	// 2. 获取自定义 of API Key Header
-	if apiKey := c.GetHeader("X-API-Key"); apiKey != "" {
-		return apiKey
-	}
-	if apiKey := c.GetHeader("X-MCP-Key"); apiKey != "" {
-		return apiKey
-	}
-
-	// 3. 最后回退到 URL query 参数
-	return c.Query("api_key")
+	return ""
 }
 
 // HandleSSE 处理 MCP SSE 协议通道的初始连接
