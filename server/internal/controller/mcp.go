@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 	"sync"
 	"time"
 
@@ -265,10 +266,33 @@ type JSONRPCResponse struct {
 	Error   interface{} `json:"error,omitempty"`
 }
 
+// getMCPAPIKey 统一从 Header (Authorization 或 X-API-Key/X-MCP-Key) 与 Query 中获取 API 密钥
+func getMCPAPIKey(c *gin.Context) string {
+	// 1. 优先获取 Authorization header (Bearer 模式或直接字符串)
+	authHeader := c.GetHeader("Authorization")
+	if authHeader != "" {
+		if strings.HasPrefix(authHeader, "Bearer ") {
+			return strings.TrimPrefix(authHeader, "Bearer ")
+		}
+		return authHeader
+	}
+
+	// 2. 获取自定义 of API Key Header
+	if apiKey := c.GetHeader("X-API-Key"); apiKey != "" {
+		return apiKey
+	}
+	if apiKey := c.GetHeader("X-MCP-Key"); apiKey != "" {
+		return apiKey
+	}
+
+	// 3. 最后回退到 URL query 参数
+	return c.Query("api_key")
+}
+
 // HandleSSE 处理 MCP SSE 协议通道的初始连接
 func (ctrl *mcpController) HandleSSE(c *gin.Context) {
-	// 1. 通过 query 参数进行 API Key 安全校验
-	apiKey := c.Query("api_key")
+	// 1. 支持 Header 与 Query 参数进行 API Key 安全校验
+	apiKey := getMCPAPIKey(c)
 	if apiKey == "" {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Missing API Key"})
 		return
@@ -314,11 +338,12 @@ func (ctrl *mcpController) HandleSSE(c *gin.Context) {
 
 	// 4. 发送初始化 endpoint 事件给客户端，指示未来的消息投递地址
 	// 按照 MCP SSE 传输规范：event: endpoint, data: 投递 URL
+	// 为了安全性考虑，不再在 GET 传递的 URL 中携带敏感的 api_key，后续的 POST 交互由 clientID 进行会话匹配与鉴权
 	scheme := "https"
 	if c.Request.TLS == nil && c.Request.Header.Get("X-Forwarded-Proto") != "https" {
 		scheme = "http"
 	}
-	messageURL := fmt.Sprintf("%s://%s/api/v1/mcp/message?client_id=%s&api_key=%s", scheme, c.Request.Host, clientID, apiKey)
+	messageURL := fmt.Sprintf("%s://%s/api/v1/mcp/message?client_id=%s", scheme, c.Request.Host, clientID)
 	c.SSEvent("endpoint", messageURL)
 	c.Writer.Flush()
 
@@ -345,14 +370,8 @@ func (ctrl *mcpController) HandleMessage(c *gin.Context) {
 		// ==========================================
 		// 支持无状态同步 POST 请求 (MCP over direct POST)
 		// ==========================================
-		// 1. 校验 API Key 凭证 (支持 Query 参数或 Authorization Bearer 头部)
-		apiKey := c.Query("api_key")
-		if apiKey == "" {
-			authHeader := c.GetHeader("Authorization")
-			if len(authHeader) > 7 && authHeader[:7] == "Bearer " {
-				apiKey = authHeader[7:]
-			}
-		}
+		// 1. 校验 API Key 凭证 (支持 Header 与 Query 参数)
+		apiKey := getMCPAPIKey(c)
 
 		if apiKey == "" {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Missing client_id or api_key"})
